@@ -1,0 +1,36 @@
+{
+  "name": "zksync2-js",
+  "version": "0.1.0",
+  "main": "build/src/index.js",
+  "types": "build/src/index.d.ts",
+  "files": [
+    "build/",
+    "abi/",
+    "src/",
+    "typechain/"
+  ],
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@typechain/ethers-v6": "^0.5.0",
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.5.2",
+    "chai": "^4.3.7",
+    "ethers": "^6.7.1",
+    "mocha": "^10.2.0",
+    "ncp": "^2.0.0",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.3.1",
+    "typescript": "^5.1.6"
+  },
+  "peerDependencies": {
+    "ethers": "^6.7.1"
+  },
+  "scripts": {
+    "tests": "mocha -r ts-node/register --bail tests/setup.test.ts tests/unit/*.test.ts tests/integration/*.test.ts",
+    "build": "yarn types && tsc && ncp ./abi ./build/abi",
+    "watch": "tsc --watch",
+    "types": "typechain --target ethers-v6 --out-dir typechain abi/*.json"
+  }
+}
