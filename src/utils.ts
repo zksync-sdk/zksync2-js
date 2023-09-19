@@ -152,9 +152,7 @@ export function serializeEip712(transaction: TransactionLike, signature?: ethers
         throw new Error('Explicitly providing `from` field is reqiured for EIP712 transactions');
     }
     const from = transaction.from;
-
     const meta: Eip712Meta = transaction.customData;
-
     let maxFeePerGas = transaction.maxFeePerGas || transaction.gasPrice || 0;
     let maxPriorityFeePerGas = transaction.maxPriorityFeePerGas || maxFeePerGas;
 
@@ -328,7 +326,7 @@ function getSignature(transaction: any, ethSignature?: EthereumSignature): Uint8
     return new Uint8Array([...r, ...s, v]);
 }
 
-function eip712TxHash(transaction: any, ethSignature?: EthereumSignature) {
+export function eip712TxHash(transaction: any, ethSignature?: EthereumSignature) {
     const signedDigest = EIP712Signer.getSignedDigest(transaction);
     const hashedSignature = ethers.keccak256(getSignature(transaction, ethSignature));
 

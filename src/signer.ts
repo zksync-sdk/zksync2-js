@@ -92,10 +92,9 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
         return this.provider;
     }
 
-    static from(signer: ethers.JsonRpcSigner & { provider: Provider }): Signer {
+    static from(signer: ethers.JsonRpcSigner & { provider: Provider }, chainId: number): Signer {
         const newSigner: Signer = Object.setPrototypeOf(signer, Signer.prototype);
-        // @ts-ignore
-        newSigner.eip712 = new EIP712Signer(newSigner, newSigner.getChainId());
+        newSigner.eip712 = new EIP712Signer(newSigner, chainId);
         return newSigner;
     }
 
@@ -177,10 +176,9 @@ export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
         return this.provider;
     }
 
-    static from(signer: ethers.VoidSigner & { provider: Provider }): L2VoidSigner {
+    static from(signer: ethers.VoidSigner & { provider: Provider }, chainId: number): L2VoidSigner {
         const newSigner: L2VoidSigner = Object.setPrototypeOf(signer, L2VoidSigner.prototype);
-        // @ts-ignore
-        newSigner.eip712 = new EIP712Signer(newSigner, newSigner.getChainId());
+        newSigner.eip712 = new EIP712Signer(newSigner, chainId);
         return newSigner;
     }
 

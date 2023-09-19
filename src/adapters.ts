@@ -24,7 +24,7 @@ import {
     IL2Bridge__factory,
     IZkSync__factory
 } from '../typechain';
-import {Address, BalancesMap, Eip712Meta, FullDepositFee, Log, PriorityOpResponse, TransactionResponse} from './types';
+import {Address, BalancesMap, Eip712Meta, FullDepositFee, PriorityOpResponse, TransactionResponse} from './types';
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -322,7 +322,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             tx.to ??= await this.getAddress();
             tx.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
 
-            let l2GasLimit = 0n;
+            let l2GasLimit = null;
             if (tx.bridgeAddress != null) {
                 const customBridgeData =
                     tx.customBridgeData ?? (await getERC20DefaultBridgeData(tx.token, this._providerL1()));

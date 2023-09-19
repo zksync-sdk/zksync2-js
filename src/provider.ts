@@ -12,7 +12,8 @@ import {
     Eip1193Provider,
     JsonRpcError,
     JsonRpcResult,
-    JsonRpcPayload
+    JsonRpcPayload,
+    resolveProperties
 } from 'ethers';
 import { IERC20__factory, IEthToken__factory, IL2Bridge__factory } from '../typechain';
 import {
@@ -30,7 +31,10 @@ import {
     TransactionDetails,
     BlockDetails,
     ContractAccountInfo,
-    Network as ZkSyncNetwork, BatchDetails, Fee
+    Network as ZkSyncNetwork,
+    BatchDetails,
+    Fee,
+    Transaction
 } from './types';
 import {
     isETH,
@@ -109,7 +113,7 @@ export class Provider extends ethers.JsonRpcProvider {
         }
     }
 
-    async l2TokenAddress(token: Address) {
+    async l2TokenAddress(token: Address): Promise<string> {
         if (token == ETH_ADDRESS) {
             return ETH_ADDRESS;
         } else {
@@ -119,7 +123,7 @@ export class Provider extends ethers.JsonRpcProvider {
         }
     }
 
-    async l1TokenAddress(token: Address) {
+    async l1TokenAddress(token: Address): Promise<string> {
         if (token == ETH_ADDRESS) {
             return ETH_ADDRESS;
         } else {
@@ -359,7 +363,7 @@ export class Provider extends ethers.JsonRpcProvider {
     }
 
     // This is inefficient. Status should probably be indicated in the transaction receipt.
-    async getTransactionStatus(txHash: string) {
+    async getTransactionStatus(txHash: string): Promise<TransactionStatus> {
         const tx = await this.getTransaction(txHash);
         if (tx == null) {
             return TransactionStatus.NotFound;
@@ -375,7 +379,21 @@ export class Provider extends ethers.JsonRpcProvider {
     }
 
     override async broadcastTransaction(signedTx: string): Promise<TransactionResponse> {
-        return (await super.broadcastTransaction(signedTx)) as TransactionResponse;
+        const { blockNumber, hash, network } = await resolveProperties({
+            blockNumber: this.getBlockNumber(),
+            hash: this._perform({
+                method: "broadcastTransaction",
+                signedTransaction: signedTx
+            }),
+            network: this.getNetwork()
+        });
+
+        const tx = Transaction.from(signedTx);
+        if (tx.hash !== hash) {
+            throw new Error("@TODO: the returned hash did not match");
+        }
+
+        return this._wrapTransactionResponse(<any>tx, network).replaceableTransaction(blockNumber);
     }
 
     async getL2TransactionFromPriorityOp(l1TxResponse: ethers.TransactionResponse): Promise<TransactionResponse> {
@@ -563,10 +581,10 @@ export class BrowserProvider extends Provider {
             }
         }
 
-        return Signer.from((await super.getSigner(address)) as any);
+        return Signer.from((await super.getSigner(address)) as any, Number((await this.getNetwork()).chainId));
     }
 
-    override async estimateGas(transaction: TransactionRequest) {
+    override async estimateGas(transaction: TransactionRequest): Promise<bigint> {
         const gas = await super.estimateGas(transaction);
         const metamaskMinimum = 21000n;
         const isEIP712 = transaction.customData != null || transaction.type == EIP712_TX_TYPE;

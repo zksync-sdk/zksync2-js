@@ -1,9 +1,9 @@
-import { EIP712Signer } from './signer';
-import { Provider } from './provider';
-import { EIP712_TX_TYPE, serializeEip712 } from './utils';
-import { ethers, ProgressCallback } from 'ethers';
-import { TransactionResponse, TransactionRequest, Transaction, TransactionLike } from './types';
-import { AdapterL1, AdapterL2 } from './adapters';
+import {EIP712Signer} from './signer';
+import {Provider} from './provider';
+import {EIP712_TX_TYPE, serializeEip712} from './utils';
+import {ethers, ProgressCallback} from 'ethers';
+import {Transaction, TransactionLike, TransactionRequest, TransactionResponse} from './types';
+import {AdapterL1, AdapterL2} from './adapters';
 
 export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
     override readonly provider: Provider;
@@ -74,10 +74,11 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
             // use legacy txs by default
             transaction.type = 0;
         }
-        const populated = (await super.populateTransaction(transaction)) as TransactionLike;
         if (transaction.customData == null && transaction.type != EIP712_TX_TYPE) {
-            return populated;
+            return (await super.populateTransaction(transaction)) as TransactionLike
         }
+        transaction.type = EIP712_TX_TYPE
+        const populated = (await super.populateTransaction(transaction)) as TransactionLike;
 
         populated.type = EIP712_TX_TYPE;
         populated.value ??= 0;
@@ -107,9 +108,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
     }
 
     override async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
-        const pop = await this.populateTransaction(tx);
-        delete pop.from;
-        const txObj = Transaction.from(pop);
-        return await this.provider.broadcastTransaction(await this.signTransaction(txObj));
+        const populatedTx = await this.populateTransaction(tx);
+        return await this.provider.broadcastTransaction(await this.signTransaction(populatedTx));
     }
 }

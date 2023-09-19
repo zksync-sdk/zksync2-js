@@ -208,7 +208,7 @@ const _formatTransactionReceipt = object(
         type: allowNull(getNumber, 0),
         l1BatchNumber: allowNull(getNumber),
         l1BatchTxIndex: allowNull(getNumber),
-        l2ToL1Logs: arrayOf(formatL2ToL1Log)
+        l2ToL1Logs: allowNull(arrayOf(formatL2ToL1Log), [])
     },
     {
         effectiveGasPrice: ['gasPrice'],
