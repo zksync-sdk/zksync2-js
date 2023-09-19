@@ -1,5 +1,12 @@
-import { BytesLike, BigNumberish, ethers, TransactionRequest as EthersTransactionRequest } from 'ethers';
-import {serializeEip712, EIP712_TX_TYPE, parseEip712, sleep} from './utils';
+import {
+    assertArgument,
+    BigNumberish,
+    BytesLike,
+    ethers,
+    Signature as EthersSignature,
+    TransactionRequest as EthersTransactionRequest
+} from 'ethers';
+import {EIP712_TX_TYPE, parseEip712, serializeEip712, sleep, eip712TxHash} from './utils';
 
 // 0x-prefixed, hex encoded, ethereum account address
 export type Address = string;
@@ -90,7 +97,12 @@ export class TransactionResponse extends ethers.TransactionResponse {
     }
 
     override async wait(confirmations?: number): Promise<TransactionReceipt> {
-        return (await super.wait(confirmations)) as TransactionReceipt;
+        while (true) {
+            const receipt = (await super.wait(confirmations)) as TransactionReceipt;
+            if (receipt.blockNumber) {
+                return receipt;
+            }
+        }
     }
 
     override async getTransaction(): Promise<TransactionResponse> {
@@ -108,9 +120,11 @@ export class TransactionResponse extends ethers.TransactionResponse {
     async waitFinalize(): Promise<TransactionReceipt> {
         while (true) {
             const receipt = await this.wait();
-            const block = await this.provider.getBlock('finalized');
-            if (receipt.blockNumber && receipt.blockNumber <= block!.number) {
-                return (await this.provider.getTransactionReceipt(receipt.hash)) as TransactionReceipt;
+            if (receipt.blockNumber) {
+                const block = await this.provider.getBlock('finalized');
+                if (receipt.blockNumber <= block!.number) {
+                    return (await this.provider.getTransactionReceipt(receipt.hash)) as TransactionReceipt;
+                }
             } else {
                 await sleep(500);
             }
@@ -118,7 +132,7 @@ export class TransactionResponse extends ethers.TransactionResponse {
     }
 
     override toJSON(): any {
-        const { l1BatchNumber, l1BatchTxIndex } = this;
+        const {l1BatchNumber, l1BatchTxIndex} = this;
 
         return {
             ...super.toJSON(),
@@ -157,7 +171,7 @@ export class TransactionReceipt extends ethers.TransactionReceipt {
     }
 
     override toJSON(): any {
-        const { l1BatchNumber, l1BatchTxIndex, l2ToL1Logs } = this;
+        const {l1BatchNumber, l1BatchTxIndex, l2ToL1Logs} = this;
         return {
             ...super.toJSON(),
             l1BatchNumber,
@@ -178,7 +192,7 @@ export class Block extends ethers.Block {
     }
 
     override toJSON(): any {
-        const { l1BatchNumber, l1BatchTimestamp: l1BatchTxIndex } = this;
+        const {l1BatchNumber, l1BatchTimestamp: l1BatchTxIndex} = this;
         return {
             ...super.toJSON(),
             l1BatchNumber,
@@ -204,7 +218,7 @@ export class Log extends ethers.Log {
     }
 
     override toJSON(): any {
-        const { l1BatchNumber } = this;
+        const {l1BatchNumber} = this;
         return {
             ...super.toJSON(),
             l1BatchNumber
@@ -230,24 +244,71 @@ export interface TransactionLike extends ethers.TransactionLike {
 
 export class Transaction extends ethers.Transaction {
     customData: null | Eip712Meta;
+    // super.#type is private and there is no way to override which enforced to
+    // introduce following variable
+    #type: number | null
+    #from: string | null
 
-    static override from(value: string | TransactionLike): Transaction {
-        if (typeof value === 'string') {
-            const payload = ethers.getBytes(value);
+    override get type(): number | null {
+        return this.#type == EIP712_TX_TYPE ? this.#type : super.type;
+    }
+
+    override set type(value: number | string | null) {
+        switch (value) {
+            case EIP712_TX_TYPE:
+            case "eip-712":
+                this.#type = EIP712_TX_TYPE;
+                break;
+            default:
+                super.type = value;
+        }
+    }
+
+
+    static override from(tx: string | TransactionLike): Transaction {
+        if (typeof tx === 'string') {
+            const payload = ethers.getBytes(tx);
             if (payload[0] !== EIP712_TX_TYPE) {
-                return Transaction.from(ethers.Transaction.from(value));
+                return Transaction.from(ethers.Transaction.from(tx));
             } else {
                 return Transaction.from(parseEip712(payload));
             }
         } else {
-            const tx = ethers.Transaction.from(value) as Transaction;
-            tx.customData = value?.customData ?? null;
-            return tx;
+            const result = new Transaction();
+            if (tx.type === EIP712_TX_TYPE) {
+                result.type = EIP712_TX_TYPE;
+                result.customData = tx.customData;
+                result.from = tx.from;
+            }
+            if (tx.type != null) result.type = tx.type;
+            if (tx.to != null) result.to = tx.to;
+            if (tx.nonce != null) result.nonce = tx.nonce;
+            if (tx.gasLimit != null) result.gasLimit = tx.gasLimit;
+            if (tx.gasPrice != null) result.gasPrice = tx.gasPrice;
+            if (tx.maxPriorityFeePerGas != null) result.maxPriorityFeePerGas = tx.maxPriorityFeePerGas;
+            if (tx.maxFeePerGas != null) result.maxFeePerGas = tx.maxFeePerGas;
+            if (tx.data != null) result.data = tx.data;
+            if (tx.value != null) result.value = tx.value;
+            if (tx.chainId != null) result.chainId = tx.chainId;
+            if (tx.signature != null) result.signature = EthersSignature.from(tx.signature);
+            if (tx.accessList != null) result.accessList = tx.accessList;
+
+            if (tx.from != null) {
+                assertArgument(result.isSigned(), "unsigned transaction cannot define from", "tx", tx);
+                assertArgument(result.from.toLowerCase() === (tx.from || "").toLowerCase(), "from mismatch", "tx", tx);
+            }
+
+            if (tx.hash != null) {
+                assertArgument(result.isSigned(), "unsigned transaction cannot define hash", "tx", tx);
+                assertArgument(result.hash === tx.hash, "hash mismatch", "tx", tx);
+            }
+
+            return result;
         }
     }
 
     override get serialized(): string {
-        if (this.customData == null && this.type != EIP712_TX_TYPE) {
+        if (this.customData == null && this.#type != EIP712_TX_TYPE) {
             return super.serialized;
         }
         return serializeEip712(this, this.signature);
@@ -261,19 +322,35 @@ export class Transaction extends ethers.Transaction {
     }
 
     override toJSON(): any {
-        const { customData } = this;
+        const {customData} = this;
         return {
             ...super.toJSON(),
+            type: this.#type == null ? this.type : this.#type,
             customData
         };
     }
 
     override get typeName(): string {
-        if (this.type === EIP712_TX_TYPE) {
-            return 'zksync';
+        return this.#type === EIP712_TX_TYPE ? 'zksync' : super.typeName;
+    }
+
+    override isSigned(): this is Transaction & { type: number; typeName: string; from: string; signature: Signature } {
+        return this.#type === EIP712_TX_TYPE ? this.customData?.customSignature !== null : super.isSigned();
+    }
+
+    override get hash(): string | null {
+        if (this.#type === EIP712_TX_TYPE) {
+            return this.customData?.customSignature !== null ? eip712TxHash(this) : null;
         } else {
-            return super.typeName;
+            return super.hash;
         }
+    }
+
+    override get from(): string | null {
+        return this.#type === EIP712_TX_TYPE ? this.#from : super.from;
+    }
+    override set from(value: string | null) {
+        this.#from = value;
     }
 }
 
@@ -362,6 +439,7 @@ export interface BatchDetails {
 export interface BlockDetails {
     number: number;
     timestamp: number;
+    l1BatchNumber: number;
     l1TxCount: number;
     l2TxCount: number;
     rootHash?: string;

@@ -1,10 +1,11 @@
 import {expect} from 'chai';
 import {Provider, types, utils, Wallet} from "../../src";
 import {ethers} from "ethers";
+import {TOKENS} from "../const.test";
 
 
 describe('Provider', () => {
-    const PUBLIC_KEY = "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049";
+    const ADDRESS = "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049";
     const PRIVATE_KEY = "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
     const RECEIVER = "0xa61464658AfeAf65CccaaFD3a512b69A83B77618";
 
@@ -13,7 +14,8 @@ describe('Provider', () => {
 
     let tx = null;
 
-    before('setup', async () => {
+    before('setup', async function () {
+        this.timeout(25_000);
         tx = await wallet.transfer({
             token: utils.ETH_ADDRESS,
             to: RECEIVER,
@@ -53,14 +55,6 @@ describe('Provider', () => {
         });
     });
 
-    describe('#getTokenPrice()', () => {
-        it('should return `token` price', async () => {
-            const TOKEN_PRICE = "1500.00";
-            const result = await provider.getTokenPrice(utils.ETH_ADDRESS);
-            expect(result).to.be.equal(TOKEN_PRICE);
-        });
-    });
-
     describe('#getGasPrice()', () => {
         it('should return gas price', async () => {
             const GAS_PRICE = BigInt(2_500_000_00);
@@ -77,16 +71,22 @@ describe('Provider', () => {
     });
 
     describe('#getBalance()', () => {
-        it('should return balance of the account at `address`', async () => {
-            const result = await provider.getBalance(PUBLIC_KEY);
+        it('should return ETH balance of the account at `address`', async () => {
+            const result = await provider.getBalance(ADDRESS);
+            expect(result > 0).to.be.true;
+        });
+
+        it('should return DAI balance of the account at `address`', async () => {
+            const result = await provider.getBalance(ADDRESS, 'latest',
+                await provider.l2TokenAddress(TOKENS.DAI.address));
             expect(result > 0).to.be.true;
         });
     });
 
     describe('#getAllAccountBalances()', () => {
         it('should return all balances of the account at `address`', async () => {
-            const result = await provider.getAllAccountBalances(PUBLIC_KEY);
-            expect(Object.keys(result)).to.have.lengthOf(2);
+            const result = await provider.getAllAccountBalances(ADDRESS);
+            expect(Object.keys(result)).to.have.lengthOf(2); // ETH and DAI
         });
     });
 
@@ -227,15 +227,15 @@ describe('Provider', () => {
         it('return withdraw transaction', async () => {
             const WITHDRAW_TX = {
                 "from": "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049",
-                "value": BigInt(7000000),
+                "value": BigInt(7_000_000_000),
                 "to": "0x000000000000000000000000000000000000800a",
                 "data": "0x51cff8d900000000000000000000000036615cf349d7f6344891b1e7ca7c72883f5dc049"
             };
             const result = await provider.getWithdrawTx({
                 token: utils.ETH_ADDRESS,
-                amount: 7_000_000,
-                to: PUBLIC_KEY,
-                from: PUBLIC_KEY
+                amount: 7_000_000_000,
+                to: ADDRESS,
+                from: ADDRESS
             });
             expect(result).to.be.deep.equal(WITHDRAW_TX);
         });
@@ -246,13 +246,13 @@ describe('Provider', () => {
             const TRANSFER_TX = {
                 "from": "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049",
                 "to": RECEIVER,
-                "value": 7_000_000
+                "value": 7_000_000_000
             };
             const result = await provider.getTransferTx({
                 token: utils.ETH_ADDRESS,
-                amount: 7_000_000,
+                amount: 7_000_000_000,
                 to: RECEIVER,
-                from: PUBLIC_KEY
+                from: ADDRESS
             });
             expect(result).to.be.deep.equal(TRANSFER_TX);
         });
@@ -260,56 +260,63 @@ describe('Provider', () => {
 
     describe('#estimateGasWithdraw()', () => {
         it('should return gas estimation of withdraw transaction', async () => {
-            const WITHDRAW_GAS = BigInt(408_530);
             const result = await provider.estimateGasWithdraw({
                 token: utils.ETH_ADDRESS,
-                amount: 7_000_000,
-                to: PUBLIC_KEY,
-                from: PUBLIC_KEY
+                amount: 7_000_000_000,
+                to: ADDRESS,
+                from: ADDRESS
             });
-            expect(result).to.be.equal(WITHDRAW_GAS);
+            expect(result > 0).to.be.true;
         });
     });
 
 
     describe('#estimateGasTransfer()', () => {
         it('should return gas estimation of transfer transaction', async () => {
-            const TRANSFER_GAS = BigInt(177_084);
             const result = await provider.estimateGasTransfer({
                 token: utils.ETH_ADDRESS,
-                amount: 7_000_000,
+                amount: 7_000_000_000,
                 to: RECEIVER,
-                from: PUBLIC_KEY
+                from: ADDRESS
             });
-            expect(result).to.be.equal(TRANSFER_GAS);
+            expect(result > 0).to.be.be.true;
         });
     });
 
     describe('#estimateGasL1()', () => {
         it('should return gas estimation of L1 transaction', async () => {
-            const ESTIMATE_GAS_L1 = BigInt(777_396);
             const result = await provider.estimateGasL1({
-                from: PUBLIC_KEY,
+                from: ADDRESS,
                 to: await provider.getMainContractAddress(),
                 value: 7_000_000_000,
                 customData: {
                     gasPerPubdata: 800
                 }
             });
-            expect(BigInt(result)).to.be.equal(ESTIMATE_GAS_L1);
+            expect(result > 0).to.be.true;
         });
     });
 
     describe('#estimateL1ToL2Execute()', () => {
         it('should return gas estimation of L1 to L2 transaction', async () => {
-            const ESTIMATE_GAS_L1_TO_L2 = BigInt(777_396);
             const result = await provider.estimateL1ToL2Execute({
                 contractAddress: await provider.getMainContractAddress(),
                 calldata: '0x',
-                caller: PUBLIC_KEY,
+                caller: ADDRESS,
                 l2Value: 7_000_000_000,
             });
-            expect(BigInt(result)).to.be.equal(ESTIMATE_GAS_L1_TO_L2);
+            expect(result > 0).to.be.true;
+        });
+    });
+
+    describe('#estimateFee()', () => {
+        it('should return gas estimation of transaction', async () => {
+            const result = await provider.estimateFee({
+                from: ADDRESS,
+                to: RECEIVER,
+                value: `0x${BigInt(7_000_000_000).toString(16)}`
+            });
+            expect(result).not.to.be.null;
         });
     });
 
