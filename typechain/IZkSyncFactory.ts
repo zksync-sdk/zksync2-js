@@ -217,44 +217,6 @@ const _abi = [
     inputs: [
       {
         indexed: true,
-        internalType: "bytes32",
-        name: "previousBytecodeHash",
-        type: "bytes32",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "newBytecodeHash",
-        type: "bytes32",
-      },
-    ],
-    name: "NewL2BootloaderBytecodeHash",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "previousBytecodeHash",
-        type: "bytes32",
-      },
-      {
-        indexed: true,
-        internalType: "bytes32",
-        name: "newBytecodeHash",
-        type: "bytes32",
-      },
-    ],
-    name: "NewL2DefaultAccountBytecodeHash",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
         internalType: "address",
         name: "oldPendingGovernor",
         type: "address",
@@ -405,78 +367,6 @@ const _abi = [
       },
     ],
     name: "NewPriorityTxMaxGasLimit",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "oldVerifier",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "newVerifier",
-        type: "address",
-      },
-    ],
-    name: "NewVerifier",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        components: [
-          {
-            internalType: "bytes32",
-            name: "recursionNodeLevelVkHash",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
-            name: "recursionLeafLevelVkHash",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
-            name: "recursionCircuitsSetVksHash",
-            type: "bytes32",
-          },
-        ],
-        indexed: false,
-        internalType: "struct VerifierParams",
-        name: "oldVerifierParams",
-        type: "tuple",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes32",
-            name: "recursionNodeLevelVkHash",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
-            name: "recursionLeafLevelVkHash",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
-            name: "recursionCircuitsSetVksHash",
-            type: "bytes32",
-          },
-        ],
-        indexed: false,
-        internalType: "struct VerifierParams",
-        name: "newVerifierParams",
-        type: "tuple",
-      },
-    ],
-    name: "NewVerifierParams",
     type: "event",
   },
   {
@@ -978,6 +868,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getAllowList",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getCurrentProposalId",
     outputs: [
       {
@@ -1069,6 +972,19 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "getPriorityTxMaxGasLimit",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
     name: "getProposedUpgradeHash",
     outputs: [
       {
@@ -1083,6 +999,19 @@ const _abi = [
   {
     inputs: [],
     name: "getProposedUpgradeTimestamp",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getProtocolVersion",
     outputs: [
       {
         internalType: "uint256",
@@ -1209,19 +1138,6 @@ const _abi = [
         internalType: "struct VerifierParams",
         name: "",
         type: "tuple",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getpriorityTxMaxGasLimit",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -1845,32 +1761,6 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "_l2BootloaderBytecodeHash",
-        type: "bytes32",
-      },
-    ],
-    name: "setL2BootloaderBytecodeHash",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "_l2DefaultAccountBytecodeHash",
-        type: "bytes32",
-      },
-    ],
-    name: "setL2DefaultAccountBytecodeHash",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "address",
         name: "_newPendingGovernor",
         type: "address",
@@ -1921,49 +1811,6 @@ const _abi = [
       },
     ],
     name: "setValidator",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "contract Verifier",
-        name: "_newVerifier",
-        type: "address",
-      },
-    ],
-    name: "setVerifier",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          {
-            internalType: "bytes32",
-            name: "recursionNodeLevelVkHash",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
-            name: "recursionLeafLevelVkHash",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
-            name: "recursionCircuitsSetVksHash",
-            type: "bytes32",
-          },
-        ],
-        internalType: "struct VerifierParams",
-        name: "_newVerifierParams",
-        type: "tuple",
-      },
-    ],
-    name: "setVerifierParams",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

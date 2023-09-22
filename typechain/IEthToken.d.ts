@@ -23,7 +23,7 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface IEthTokenInterface extends ethers.utils.Interface {
   functions: {
-    "balanceOf(address)": FunctionFragment;
+    "balanceOf(uint256)": FunctionFragment;
     "decimals()": FunctionFragment;
     "mint(address,uint256)": FunctionFragment;
     "name()": FunctionFragment;
@@ -33,7 +33,10 @@ interface IEthTokenInterface extends ethers.utils.Interface {
     "withdraw(address)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "balanceOf",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "mint",
@@ -69,7 +72,7 @@ interface IEthTokenInterface extends ethers.utils.Interface {
   events: {
     "Mint(address,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
-    "Withdrawal(address,uint256)": EventFragment;
+    "Withdrawal(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Mint"): EventFragment;
@@ -92,14 +95,14 @@ export class IEthToken extends Contract {
 
   functions: {
     balanceOf(
-      arg0: string,
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
       0: BigNumber;
     }>;
 
-    "balanceOf(address)"(
-      arg0: string,
+    "balanceOf(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
       0: BigNumber;
@@ -174,10 +177,10 @@ export class IEthToken extends Contract {
     ): Promise<ContractTransaction>;
   };
 
-  balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+  balanceOf(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
-  "balanceOf(address)"(
-    arg0: string,
+  "balanceOf(uint256)"(
+    arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -234,10 +237,13 @@ export class IEthToken extends Contract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOf(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    "balanceOf(address)"(
-      arg0: string,
+    "balanceOf(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -296,14 +302,21 @@ export class IEthToken extends Contract {
 
     Transfer(from: string | null, to: string | null, value: null): EventFilter;
 
-    Withdrawal(_l1Receiver: string | null, _amount: null): EventFilter;
+    Withdrawal(
+      _l2Sender: string | null,
+      _l1Receiver: string | null,
+      _amount: null
+    ): EventFilter;
   };
 
   estimateGas: {
-    balanceOf(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+    balanceOf(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    "balanceOf(address)"(
-      arg0: string,
+    "balanceOf(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -362,12 +375,12 @@ export class IEthToken extends Contract {
 
   populateTransaction: {
     balanceOf(
-      arg0: string,
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "balanceOf(address)"(
-      arg0: string,
+    "balanceOf(uint256)"(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

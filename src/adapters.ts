@@ -1,5 +1,5 @@
 import { BigNumber, BigNumberish, BytesLike, ethers } from 'ethers';
-import { IERC20MetadataFactory, IL1BridgeFactory, IL2BridgeFactory, IZkSyncFactory } from '../typechain';
+import { IERC20Factory, IL1BridgeFactory, IL2BridgeFactory, IZkSyncFactory } from '../typechain';
 import { Provider } from './provider';
 import {
     Address,
@@ -65,7 +65,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             if (isETH(token)) {
                 return await this._providerL1().getBalance(await this.getAddress(), blockTag);
             } else {
-                const erc20contract = IERC20MetadataFactory.connect(token, this._providerL1());
+                const erc20contract = IERC20Factory.connect(token, this._providerL1());
                 return await erc20contract.balanceOf(await this.getAddress());
             }
         }
@@ -77,7 +77,11 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         ): Promise<BigNumber> {
             if (!bridgeAddress) {
                 const bridgeContracts = await this.getL1BridgeContracts();
-                const l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                let l2WethToken = ethers.constants.AddressZero;
+                try {
+                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                } catch (e) {}
+
                 // If the token is Wrapped Ether, return allowance to its own bridge, otherwise to the default ERC20 bridge.
                 bridgeAddress =
                     l2WethToken != ethers.constants.AddressZero
@@ -85,7 +89,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                         : bridgeContracts.erc20.address;
             }
 
-            const erc20contract = IERC20MetadataFactory.connect(token, this._providerL1());
+            const erc20contract = IERC20Factory.connect(token, this._providerL1());
             return await erc20contract.allowance(await this.getAddress(), bridgeAddress, { blockTag });
         }
 
@@ -95,12 +99,13 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             }
 
             const bridgeContracts = await this.getL1BridgeContracts();
-            const l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
-            // If the token is Wrapped Ether, return its L2 token address.
-            if (l2WethToken != ethers.constants.AddressZero) {
-                return l2WethToken;
-            }
-
+            try {
+                const l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                // If the token is Wrapped Ether, return its L2 token address.
+                if (l2WethToken != ethers.constants.AddressZero) {
+                    return l2WethToken;
+                }
+            } catch (e) {}
             return await bridgeContracts.erc20.l2TokenAddress(token);
         }
 
@@ -114,11 +119,14 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             }
 
             let bridgeAddress = overrides?.bridgeAddress;
-            const erc20contract = IERC20MetadataFactory.connect(token, this._signerL1());
+            const erc20contract = IERC20Factory.connect(token, this._signerL1());
 
             if (bridgeAddress == null) {
                 const bridgeContracts = await this.getL1BridgeContracts();
-                const l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                let l2WethToken = ethers.constants.AddressZero;
+                try {
+                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                } catch (e) {}
                 // If the token is Wrapped Ether, return corresponding bridge, otherwise return default ERC20 bridge
                 bridgeAddress =
                     l2WethToken != ethers.constants.AddressZero
@@ -179,7 +187,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             } else {
                 const bridgeContracts = await this.getL1BridgeContracts();
                 if (transaction.approveERC20) {
-                    const l2WethToken = await bridgeContracts.weth.l2TokenAddress(transaction.token);
+                    let l2WethToken = ethers.constants.AddressZero;
+                    try {
+                        l2WethToken = await bridgeContracts.weth.l2TokenAddress(transaction.token);
+                    } catch (e) {}
                     // If the token is Wrapped Ether, use its bridge.
                     const proposedBridge =
                         l2WethToken != ethers.constants.AddressZero
@@ -324,7 +335,11 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 overrides.value ??= baseCost.add(operatorTip);
                 await checkBaseCost(baseCost, overrides.value);
 
-                const l2WethToken = await bridgeContracts.weth.l2TokenAddress(tx.token);
+                let l2WethToken =  ethers.constants.AddressZero;
+                try {
+                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(tx.token);
+                } catch (e) {}
+
                 const bridge =
                     l2WethToken != ethers.constants.AddressZero ? bridgeContracts.weth : bridgeContracts.erc20;
                 return await bridge.populateTransaction.deposit(...args, overrides);

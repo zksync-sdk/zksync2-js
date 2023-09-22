@@ -18,6 +18,68 @@ export class IL2BridgeFactory {
 
 const _abi = [
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "l1Sender",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "l2Receiver",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "l2Token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "FinalizeDeposit",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "l2Sender",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "l1Receiver",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "l2Token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "WithdrawalInitiated",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -47,30 +109,7 @@ const _abi = [
     ],
     name: "finalizeDeposit",
     outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_l1Bridge",
-        type: "address",
-      },
-      {
-        internalType: "bytes32",
-        name: "_l2TokenProxyBytecodeHash",
-        type: "bytes32",
-      },
-      {
-        internalType: "address",
-        name: "_governor",
-        type: "address",
-      },
-    ],
-    name: "initialize",
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "payable",
     type: "function",
   },
   {
