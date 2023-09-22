@@ -12,7 +12,7 @@ import {
 import { TypedDataDomain, TypedDataField } from '@ethersproject/abstract-signer';
 import { Provider } from './provider';
 import { EIP712Signer } from './signer';
-import { IERC20MetadataFactory, IL1BridgeFactory } from '../typechain';
+import { IERC20Factory, IL1BridgeFactory } from '../typechain';
 import { AbiCoder } from 'ethers/lib/utils';
 
 export * from './paymaster-utils';
@@ -52,12 +52,12 @@ export const L1_RECOMMENDED_MIN_ETH_DEPOSIT_GAS_LIMIT = 200000;
 
 // The large L2 gas per pubdata to sign. This gas is enough to ensure that
 // any reasonable limit will be accepted. Note, that the operator is NOT required to
-// use the honest value of gas per pubdata and it can use any value up to the one signed by the user.
+// use the honest value of gas per pubdata, and it can use any value up to the one signed by the user.
 // In the future releases, we will provide a way to estimate the current gasPerPubdata.
 export const DEFAULT_GAS_PER_PUBDATA_LIMIT = 50000;
 
 // It is possible to provide practically any gasPerPubdataByte for L1->L2 transactions, since
-// the cost per gas will be adjusted respectively. We will use 800 as an relatively optimal value for now.
+// the cost per gas will be adjusted respectively. We will use 800 as a relatively optimal value for now.
 export const REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT = 800;
 
 export function isETH(token: Address) {
@@ -398,7 +398,7 @@ export async function getERC20DefaultBridgeData(
     l1TokenAddress: string,
     provider: ethers.providers.Provider
 ): Promise<string> {
-    const token = IERC20MetadataFactory.connect(l1TokenAddress, provider);
+    const token = IERC20Factory.connect(l1TokenAddress, provider);
 
     const name = await token.name();
     const symbol = await token.symbol();
@@ -535,7 +535,11 @@ export async function estimateDefaultBridgeDepositL2Gas(
         let value, l1BridgeAddress, l2BridgeAddress, bridgeData;
         const bridgeAddresses = await providerL2.getDefaultBridgeAddresses();
         const l1WethBridge = IL1BridgeFactory.connect(bridgeAddresses.wethL1, providerL1);
-        const l2WethToken = await l1WethBridge.l2TokenAddress(token);
+        let l2WethToken = ethers.constants.AddressZero;
+        try {
+            l2WethToken = await l1WethBridge.l2TokenAddress(token);
+        } catch (e) {}
+
         if (l2WethToken != ethers.constants.AddressZero) {
             value = amount;
             l1BridgeAddress = bridgeAddresses.wethL1;

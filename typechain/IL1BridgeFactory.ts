@@ -9,8 +9,8 @@ import type { IL1Bridge } from "./IL1Bridge";
 
 export class IL1BridgeFactory {
   static connect(
-      address: string,
-      signerOrProvider: Signer | Provider
+    address: string,
+    signerOrProvider: Signer | Provider
   ): IL1Bridge {
     return new Contract(address, _abi, signerOrProvider) as IL1Bridge;
   }

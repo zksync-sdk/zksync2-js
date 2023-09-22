@@ -67,6 +67,12 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "_l2Sender",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
         name: "_l1Receiver",
         type: "address",
       },
@@ -83,9 +89,9 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address",
+        internalType: "uint256",
         name: "",
-        type: "address",
+        type: "uint256",
       },
     ],
     name: "balanceOf",

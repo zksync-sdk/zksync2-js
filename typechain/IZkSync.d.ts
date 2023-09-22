@@ -34,6 +34,7 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     "facets()": FunctionFragment;
     "finalizeEthWithdrawal(uint256,uint256,uint16,bytes,bytes32[])": FunctionFragment;
     "freezeDiamond()": FunctionFragment;
+    "getAllowList()": FunctionFragment;
     "getCurrentProposalId()": FunctionFragment;
     "getFirstUnprocessedPriorityTx()": FunctionFragment;
     "getGovernor()": FunctionFragment;
@@ -41,8 +42,10 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     "getL2DefaultAccountBytecodeHash()": FunctionFragment;
     "getPendingGovernor()": FunctionFragment;
     "getPriorityQueueSize()": FunctionFragment;
+    "getPriorityTxMaxGasLimit()": FunctionFragment;
     "getProposedUpgradeHash()": FunctionFragment;
     "getProposedUpgradeTimestamp()": FunctionFragment;
+    "getProtocolVersion()": FunctionFragment;
     "getSecurityCouncil()": FunctionFragment;
     "getTotalBlocksCommitted()": FunctionFragment;
     "getTotalBlocksExecuted()": FunctionFragment;
@@ -51,7 +54,6 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     "getUpgradeProposalState()": FunctionFragment;
     "getVerifier()": FunctionFragment;
     "getVerifierParams()": FunctionFragment;
-    "getpriorityTxMaxGasLimit()": FunctionFragment;
     "isApprovedBySecurityCouncil()": FunctionFragment;
     "isDiamondStorageFrozen()": FunctionFragment;
     "isEthWithdrawalFinalized(uint256,uint256)": FunctionFragment;
@@ -70,14 +72,10 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     "requestL2Transaction(address,uint256,bytes,uint256,uint256,bytes[],address)": FunctionFragment;
     "revertBlocks(uint256)": FunctionFragment;
     "securityCouncilUpgradeApprove(bytes32)": FunctionFragment;
-    "setL2BootloaderBytecodeHash(bytes32)": FunctionFragment;
-    "setL2DefaultAccountBytecodeHash(bytes32)": FunctionFragment;
     "setPendingGovernor(address)": FunctionFragment;
     "setPorterAvailability(bool)": FunctionFragment;
     "setPriorityTxMaxGasLimit(uint256)": FunctionFragment;
     "setValidator(address,bool)": FunctionFragment;
-    "setVerifier(address)": FunctionFragment;
-    "setVerifierParams(tuple)": FunctionFragment;
     "storedBlockHash(uint256)": FunctionFragment;
     "unfreezeDiamond()": FunctionFragment;
     "upgradeProposalHash(tuple,uint256,bytes32)": FunctionFragment;
@@ -173,6 +171,10 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getAllowList",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getCurrentProposalId",
     values?: undefined
   ): string;
@@ -201,11 +203,19 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getPriorityTxMaxGasLimit",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "getProposedUpgradeHash",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getProposedUpgradeTimestamp",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getProtocolVersion",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -238,10 +248,6 @@ interface IZkSyncInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getVerifierParams",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getpriorityTxMaxGasLimit",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -383,14 +389,6 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "setL2BootloaderBytecodeHash",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setL2DefaultAccountBytecodeHash",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "setPendingGovernor",
     values: [string]
   ): string;
@@ -405,17 +403,6 @@ interface IZkSyncInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "setValidator",
     values: [string, boolean]
-  ): string;
-  encodeFunctionData(functionFragment: "setVerifier", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "setVerifierParams",
-    values: [
-      {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      }
-    ]
   ): string;
   encodeFunctionData(
     functionFragment: "storedBlockHash",
@@ -485,6 +472,10 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getAllowList",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getCurrentProposalId",
     data: BytesLike
   ): Result;
@@ -513,11 +504,19 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getPriorityTxMaxGasLimit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getProposedUpgradeHash",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getProposedUpgradeTimestamp",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getProtocolVersion",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -550,10 +549,6 @@ interface IZkSyncInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getVerifierParams",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getpriorityTxMaxGasLimit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -629,14 +624,6 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setL2BootloaderBytecodeHash",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setL2DefaultAccountBytecodeHash",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "setPendingGovernor",
     data: BytesLike
   ): Result;
@@ -650,14 +637,6 @@ interface IZkSyncInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setValidator",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setVerifier",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setVerifierParams",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -684,13 +663,9 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     "Freeze()": EventFragment;
     "IsPorterAvailableStatusUpdate(bool)": EventFragment;
     "NewGovernor(address,address)": EventFragment;
-    "NewL2BootloaderBytecodeHash(bytes32,bytes32)": EventFragment;
-    "NewL2DefaultAccountBytecodeHash(bytes32,bytes32)": EventFragment;
     "NewPendingGovernor(address,address)": EventFragment;
     "NewPriorityRequest(uint256,bytes32,uint64,tuple,bytes[])": EventFragment;
     "NewPriorityTxMaxGasLimit(uint256,uint256)": EventFragment;
-    "NewVerifier(address,address)": EventFragment;
-    "NewVerifierParams(tuple,tuple)": EventFragment;
     "ProposeShadowUpgrade(uint256,bytes32)": EventFragment;
     "ProposeTransparentUpgrade(tuple,uint256,bytes32)": EventFragment;
     "SecurityCouncilUpgradeApprove(uint256,bytes32)": EventFragment;
@@ -710,17 +685,9 @@ interface IZkSyncInterface extends ethers.utils.Interface {
     nameOrSignatureOrTopic: "IsPorterAvailableStatusUpdate"
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewGovernor"): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "NewL2BootloaderBytecodeHash"
-  ): EventFragment;
-  getEvent(
-    nameOrSignatureOrTopic: "NewL2DefaultAccountBytecodeHash"
-  ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewPendingGovernor"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewPriorityRequest"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "NewPriorityTxMaxGasLimit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewVerifier"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewVerifierParams"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProposeShadowUpgrade"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProposeTransparentUpgrade"): EventFragment;
   getEvent(
@@ -942,6 +909,14 @@ export class IZkSync extends Contract {
 
     "freezeDiamond()"(overrides?: Overrides): Promise<ContractTransaction>;
 
+    getAllowList(overrides?: CallOverrides): Promise<{
+      0: string;
+    }>;
+
+    "getAllowList()"(overrides?: CallOverrides): Promise<{
+      0: string;
+    }>;
+
     getCurrentProposalId(overrides?: CallOverrides): Promise<{
       0: BigNumber;
     }>;
@@ -998,6 +973,14 @@ export class IZkSync extends Contract {
       0: BigNumber;
     }>;
 
+    getPriorityTxMaxGasLimit(overrides?: CallOverrides): Promise<{
+      0: BigNumber;
+    }>;
+
+    "getPriorityTxMaxGasLimit()"(overrides?: CallOverrides): Promise<{
+      0: BigNumber;
+    }>;
+
     getProposedUpgradeHash(overrides?: CallOverrides): Promise<{
       0: string;
     }>;
@@ -1011,6 +994,14 @@ export class IZkSync extends Contract {
     }>;
 
     "getProposedUpgradeTimestamp()"(overrides?: CallOverrides): Promise<{
+      0: BigNumber;
+    }>;
+
+    getProtocolVersion(overrides?: CallOverrides): Promise<{
+      0: BigNumber;
+    }>;
+
+    "getProtocolVersion()"(overrides?: CallOverrides): Promise<{
       0: BigNumber;
     }>;
 
@@ -1090,14 +1081,6 @@ export class IZkSync extends Contract {
         1: string;
         2: string;
       };
-    }>;
-
-    getpriorityTxMaxGasLimit(overrides?: CallOverrides): Promise<{
-      0: BigNumber;
-    }>;
-
-    "getpriorityTxMaxGasLimit()"(overrides?: CallOverrides): Promise<{
-      0: BigNumber;
     }>;
 
     isApprovedBySecurityCouncil(overrides?: CallOverrides): Promise<{
@@ -1458,26 +1441,6 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    setL2BootloaderBytecodeHash(
-      _l2BootloaderBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setL2BootloaderBytecodeHash(bytes32)"(
-      _l2BootloaderBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    setL2DefaultAccountBytecodeHash(
-      _l2DefaultAccountBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setL2DefaultAccountBytecodeHash(bytes32)"(
-      _l2DefaultAccountBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
     setPendingGovernor(
       _newPendingGovernor: string,
       overrides?: Overrides
@@ -1517,34 +1480,6 @@ export class IZkSync extends Contract {
     "setValidator(address,bool)"(
       _validator: string,
       _active: boolean,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    setVerifier(
-      _newVerifier: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setVerifier(address)"(
-      _newVerifier: string,
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    setVerifierParams(
-      _newVerifierParams: {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      },
-      overrides?: Overrides
-    ): Promise<ContractTransaction>;
-
-    "setVerifierParams((bytes32,bytes32,bytes32))"(
-      _newVerifierParams: {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      },
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
@@ -1785,6 +1720,10 @@ export class IZkSync extends Contract {
 
   "freezeDiamond()"(overrides?: Overrides): Promise<ContractTransaction>;
 
+  getAllowList(overrides?: CallOverrides): Promise<string>;
+
+  "getAllowList()"(overrides?: CallOverrides): Promise<string>;
+
   getCurrentProposalId(overrides?: CallOverrides): Promise<BigNumber>;
 
   "getCurrentProposalId()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1817,6 +1756,10 @@ export class IZkSync extends Contract {
 
   "getPriorityQueueSize()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getPriorityTxMaxGasLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "getPriorityTxMaxGasLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
+
   getProposedUpgradeHash(overrides?: CallOverrides): Promise<string>;
 
   "getProposedUpgradeHash()"(overrides?: CallOverrides): Promise<string>;
@@ -1826,6 +1769,10 @@ export class IZkSync extends Contract {
   "getProposedUpgradeTimestamp()"(
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  getProtocolVersion(overrides?: CallOverrides): Promise<BigNumber>;
+
+  "getProtocolVersion()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   getSecurityCouncil(overrides?: CallOverrides): Promise<string>;
 
@@ -1876,10 +1823,6 @@ export class IZkSync extends Contract {
     1: string;
     2: string;
   }>;
-
-  getpriorityTxMaxGasLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-  "getpriorityTxMaxGasLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
   isApprovedBySecurityCouncil(overrides?: CallOverrides): Promise<boolean>;
 
@@ -2185,26 +2128,6 @@ export class IZkSync extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  setL2BootloaderBytecodeHash(
-    _l2BootloaderBytecodeHash: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setL2BootloaderBytecodeHash(bytes32)"(
-    _l2BootloaderBytecodeHash: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  setL2DefaultAccountBytecodeHash(
-    _l2DefaultAccountBytecodeHash: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setL2DefaultAccountBytecodeHash(bytes32)"(
-    _l2DefaultAccountBytecodeHash: BytesLike,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
   setPendingGovernor(
     _newPendingGovernor: string,
     overrides?: Overrides
@@ -2244,34 +2167,6 @@ export class IZkSync extends Contract {
   "setValidator(address,bool)"(
     _validator: string,
     _active: boolean,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  setVerifier(
-    _newVerifier: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setVerifier(address)"(
-    _newVerifier: string,
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  setVerifierParams(
-    _newVerifierParams: {
-      recursionNodeLevelVkHash: BytesLike;
-      recursionLeafLevelVkHash: BytesLike;
-      recursionCircuitsSetVksHash: BytesLike;
-    },
-    overrides?: Overrides
-  ): Promise<ContractTransaction>;
-
-  "setVerifierParams((bytes32,bytes32,bytes32))"(
-    _newVerifierParams: {
-      recursionNodeLevelVkHash: BytesLike;
-      recursionLeafLevelVkHash: BytesLike;
-      recursionCircuitsSetVksHash: BytesLike;
-    },
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
@@ -2504,6 +2399,10 @@ export class IZkSync extends Contract {
 
     "freezeDiamond()"(overrides?: CallOverrides): Promise<void>;
 
+    getAllowList(overrides?: CallOverrides): Promise<string>;
+
+    "getAllowList()"(overrides?: CallOverrides): Promise<string>;
+
     getCurrentProposalId(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentProposalId()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -2538,6 +2437,10 @@ export class IZkSync extends Contract {
 
     "getPriorityQueueSize()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getPriorityTxMaxGasLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getPriorityTxMaxGasLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getProposedUpgradeHash(overrides?: CallOverrides): Promise<string>;
 
     "getProposedUpgradeHash()"(overrides?: CallOverrides): Promise<string>;
@@ -2547,6 +2450,10 @@ export class IZkSync extends Contract {
     "getProposedUpgradeTimestamp()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getProtocolVersion(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getProtocolVersion()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getSecurityCouncil(overrides?: CallOverrides): Promise<string>;
 
@@ -2597,10 +2504,6 @@ export class IZkSync extends Contract {
       1: string;
       2: string;
     }>;
-
-    getpriorityTxMaxGasLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getpriorityTxMaxGasLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     isApprovedBySecurityCouncil(overrides?: CallOverrides): Promise<boolean>;
 
@@ -2911,26 +2814,6 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    setL2BootloaderBytecodeHash(
-      _l2BootloaderBytecodeHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setL2BootloaderBytecodeHash(bytes32)"(
-      _l2BootloaderBytecodeHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setL2DefaultAccountBytecodeHash(
-      _l2DefaultAccountBytecodeHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setL2DefaultAccountBytecodeHash(bytes32)"(
-      _l2DefaultAccountBytecodeHash: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
     setPendingGovernor(
       _newPendingGovernor: string,
       overrides?: CallOverrides
@@ -2970,31 +2853,6 @@ export class IZkSync extends Contract {
     "setValidator(address,bool)"(
       _validator: string,
       _active: boolean,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setVerifier(_newVerifier: string, overrides?: CallOverrides): Promise<void>;
-
-    "setVerifier(address)"(
-      _newVerifier: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setVerifierParams(
-      _newVerifierParams: {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      },
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    "setVerifierParams((bytes32,bytes32,bytes32))"(
-      _newVerifierParams: {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      },
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -3091,16 +2949,6 @@ export class IZkSync extends Contract {
       newGovernor: string | null
     ): EventFilter;
 
-    NewL2BootloaderBytecodeHash(
-      previousBytecodeHash: BytesLike | null,
-      newBytecodeHash: BytesLike | null
-    ): EventFilter;
-
-    NewL2DefaultAccountBytecodeHash(
-      previousBytecodeHash: BytesLike | null,
-      newBytecodeHash: BytesLike | null
-    ): EventFilter;
-
     NewPendingGovernor(
       oldPendingGovernor: string | null,
       newPendingGovernor: string | null
@@ -3117,16 +2965,6 @@ export class IZkSync extends Contract {
     NewPriorityTxMaxGasLimit(
       oldPriorityTxMaxGasLimit: null,
       newPriorityTxMaxGasLimit: null
-    ): EventFilter;
-
-    NewVerifier(
-      oldVerifier: string | null,
-      newVerifier: string | null
-    ): EventFilter;
-
-    NewVerifierParams(
-      oldVerifierParams: null,
-      newVerifierParams: null
     ): EventFilter;
 
     ProposeShadowUpgrade(
@@ -3332,6 +3170,10 @@ export class IZkSync extends Contract {
 
     "freezeDiamond()"(overrides?: Overrides): Promise<BigNumber>;
 
+    getAllowList(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getAllowList()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getCurrentProposalId(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getCurrentProposalId()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -3370,6 +3212,10 @@ export class IZkSync extends Contract {
 
     "getPriorityQueueSize()"(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getPriorityTxMaxGasLimit(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getPriorityTxMaxGasLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
+
     getProposedUpgradeHash(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getProposedUpgradeHash()"(overrides?: CallOverrides): Promise<BigNumber>;
@@ -3379,6 +3225,10 @@ export class IZkSync extends Contract {
     "getProposedUpgradeTimestamp()"(
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    getProtocolVersion(overrides?: CallOverrides): Promise<BigNumber>;
+
+    "getProtocolVersion()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     getSecurityCouncil(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -3411,10 +3261,6 @@ export class IZkSync extends Contract {
     getVerifierParams(overrides?: CallOverrides): Promise<BigNumber>;
 
     "getVerifierParams()"(overrides?: CallOverrides): Promise<BigNumber>;
-
-    getpriorityTxMaxGasLimit(overrides?: CallOverrides): Promise<BigNumber>;
-
-    "getpriorityTxMaxGasLimit()"(overrides?: CallOverrides): Promise<BigNumber>;
 
     isApprovedBySecurityCouncil(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -3712,26 +3558,6 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    setL2BootloaderBytecodeHash(
-      _l2BootloaderBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setL2BootloaderBytecodeHash(bytes32)"(
-      _l2BootloaderBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    setL2DefaultAccountBytecodeHash(
-      _l2DefaultAccountBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setL2DefaultAccountBytecodeHash(bytes32)"(
-      _l2DefaultAccountBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
     setPendingGovernor(
       _newPendingGovernor: string,
       overrides?: Overrides
@@ -3771,34 +3597,6 @@ export class IZkSync extends Contract {
     "setValidator(address,bool)"(
       _validator: string,
       _active: boolean,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    setVerifier(
-      _newVerifier: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setVerifier(address)"(
-      _newVerifier: string,
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    setVerifierParams(
-      _newVerifierParams: {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      },
-      overrides?: Overrides
-    ): Promise<BigNumber>;
-
-    "setVerifierParams((bytes32,bytes32,bytes32))"(
-      _newVerifierParams: {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      },
       overrides?: Overrides
     ): Promise<BigNumber>;
 
@@ -4030,6 +3828,10 @@ export class IZkSync extends Contract {
 
     "freezeDiamond()"(overrides?: Overrides): Promise<PopulatedTransaction>;
 
+    getAllowList(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    "getAllowList()"(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getCurrentProposalId(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -4082,6 +3884,14 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    getPriorityTxMaxGasLimit(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getPriorityTxMaxGasLimit()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getProposedUpgradeHash(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -4095,6 +3905,14 @@ export class IZkSync extends Contract {
     ): Promise<PopulatedTransaction>;
 
     "getProposedUpgradeTimestamp()"(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getProtocolVersion(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "getProtocolVersion()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4153,14 +3971,6 @@ export class IZkSync extends Contract {
     getVerifierParams(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     "getVerifierParams()"(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    getpriorityTxMaxGasLimit(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    "getpriorityTxMaxGasLimit()"(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -4468,26 +4278,6 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    setL2BootloaderBytecodeHash(
-      _l2BootloaderBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setL2BootloaderBytecodeHash(bytes32)"(
-      _l2BootloaderBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    setL2DefaultAccountBytecodeHash(
-      _l2DefaultAccountBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setL2DefaultAccountBytecodeHash(bytes32)"(
-      _l2DefaultAccountBytecodeHash: BytesLike,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
     setPendingGovernor(
       _newPendingGovernor: string,
       overrides?: Overrides
@@ -4527,34 +4317,6 @@ export class IZkSync extends Contract {
     "setValidator(address,bool)"(
       _validator: string,
       _active: boolean,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    setVerifier(
-      _newVerifier: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setVerifier(address)"(
-      _newVerifier: string,
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    setVerifierParams(
-      _newVerifierParams: {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      },
-      overrides?: Overrides
-    ): Promise<PopulatedTransaction>;
-
-    "setVerifierParams((bytes32,bytes32,bytes32))"(
-      _newVerifierParams: {
-        recursionNodeLevelVkHash: BytesLike;
-        recursionLeafLevelVkHash: BytesLike;
-        recursionCircuitsSetVksHash: BytesLike;
-      },
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 

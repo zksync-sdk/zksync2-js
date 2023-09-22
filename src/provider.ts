@@ -2,7 +2,7 @@ import { ethers, BigNumber, BigNumberish, utils, providers, BytesLike, Contract 
 import Formatter = providers.Formatter;
 import { ExternalProvider } from '@ethersproject/providers';
 import { ConnectionInfo, poll } from '@ethersproject/web';
-import { IERC20MetadataFactory, IEthTokenFactory, IL2BridgeFactory } from '../typechain';
+import { IERC20Factory, IEthTokenFactory, IL2BridgeFactory } from '../typechain';
 import {
     Address,
     EventFilter,
@@ -363,7 +363,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
             return await super.getBalance(address, tag);
         } else {
             try {
-                let token = IERC20MetadataFactory.connect(tokenAddress, this);
+                let token = IERC20Factory.connect(tokenAddress, this);
                 return await token.balanceOf(address, { blockTag: tag });
             } catch {
                 return BigNumber.from(0);
@@ -378,12 +378,13 @@ export class Provider extends ethers.providers.JsonRpcProvider {
 
         const bridgeAddresses = await this.getDefaultBridgeAddresses();
         const l2WethBridge = IL2BridgeFactory.connect(bridgeAddresses.wethL2, this);
-        const l2WethToken = await l2WethBridge.l2TokenAddress(token);
-        // If the token is Wrapped Ether, return its L2 token address
-        if (l2WethToken != ethers.constants.AddressZero) {
-            return l2WethToken;
-        }
-
+        try {
+            const l2WethToken = await l2WethBridge.l2TokenAddress(token);
+            // If the token is Wrapped Ether, return its L2 token address
+            if (l2WethToken != ethers.constants.AddressZero) {
+                return l2WethToken;
+            }
+        } catch (e) {}
         const l2Erc20Bridge = IL2BridgeFactory.connect(bridgeAddresses.erc20L2, this);
         return await l2Erc20Bridge.l2TokenAddress(token);
     }
@@ -395,12 +396,13 @@ export class Provider extends ethers.providers.JsonRpcProvider {
 
         const bridgeAddresses = await this.getDefaultBridgeAddresses();
         const l2WethBridge = IL2BridgeFactory.connect(bridgeAddresses.wethL2, this);
-        const l1WethToken = await l2WethBridge.l1TokenAddress(token);
-        // If the token is Wrapped Ether, return its L1 token address
-        if (l1WethToken != ethers.constants.AddressZero) {
-            return l1WethToken;
-        }
-
+        try {
+            const l1WethToken = await l2WethBridge.l1TokenAddress(token);
+            // If the token is Wrapped Ether, return its L1 token address
+            if (l1WethToken != ethers.constants.AddressZero) {
+                return l1WethToken;
+            }
+        } catch (e) {}
         const erc20Bridge = IL2BridgeFactory.connect(bridgeAddresses.erc20L2, this);
         return await erc20Bridge.l1TokenAddress(token);
     }
@@ -632,8 +634,10 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         if (tx.bridgeAddress == null) {
             const bridgeAddresses = await this.getDefaultBridgeAddresses();
             const l2WethBridge = IL2BridgeFactory.connect(bridgeAddresses.wethL2, this);
-            const l1WethToken = await l2WethBridge.l1TokenAddress(tx.token);
-
+            let l1WethToken = ethers.constants.AddressZero;
+            try {
+                l1WethToken = await l2WethBridge.l1TokenAddress(tx.token);
+            } catch (e) {}
             tx.bridgeAddress =
                 l1WethToken != ethers.constants.AddressZero ? bridgeAddresses.wethL2 : bridgeAddresses.erc20L2;
         }
@@ -672,7 +676,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
                 value: tx.amount
             };
         } else {
-            const token = IERC20MetadataFactory.connect(tx.token, this);
+            const token = IERC20Factory.connect(tx.token, this);
             return await token.populateTransaction.transfer(tx.to, tx.amount, tx.overrides);
         }
     }
