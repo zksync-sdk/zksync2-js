@@ -152,15 +152,6 @@ export class Provider extends ethers.JsonRpcProvider {
         this.contractAddresses = {};
     }
 
-    async getMessageProof(
-        blockNumber: number,
-        sender: Address,
-        messageHash: BytesLike,
-        logIndex?: number
-    ): Promise<MessageProof | null> {
-        return await this.send('zks_getL2ToL1MsgProof', [blockNumber, sender, ethers.hexlify(messageHash), logIndex]);
-    }
-
     async getLogProof(txHash: BytesLike, index?: number): Promise<MessageProof | null> {
         return await this.send('zks_getL2ToL1LogProof', [ethers.hexlify(txHash), index]);
     }
@@ -201,10 +192,6 @@ export class Provider extends ethers.JsonRpcProvider {
     async getConfirmedTokens(start: number = 0, limit: number = 255): Promise<Token[]> {
         const tokens: Token[] = await this.send('zks_getConfirmedTokens', [start, limit]);
         return tokens.map((token) => ({ address: token.l2Address, ...token }));
-    }
-
-    async getTokenPrice(token: Address): Promise<string | null> {
-        return await this.send('zks_getTokenPrice', [token]);
     }
 
     async getAllAccountBalances(address: Address): Promise<BalancesMap> {

@@ -55,14 +55,6 @@ describe('Provider', () => {
         });
     });
 
-    describe('#getTokenPrice()', () => {
-        it('should return `token` price', async () => {
-            const TOKEN_PRICE = "1500.00";
-            const result = await provider.getTokenPrice(utils.ETH_ADDRESS);
-            expect(result).to.be.equal(TOKEN_PRICE);
-        });
-    });
-
     describe('#getGasPrice()', () => {
         it('should return gas price', async () => {
             const GAS_PRICE = BigInt(2_500_000_00);

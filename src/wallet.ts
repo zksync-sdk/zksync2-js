@@ -29,15 +29,15 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         return this;
     }
 
-    ethWallet() {
+    ethWallet(): ethers.Wallet {
         return new ethers.Wallet(this.signingKey, this._providerL1());
     }
 
-    override connect(provider: Provider) {
+    override connect(provider: Provider): Wallet {
         return new Wallet(this.signingKey, provider, this.providerL1);
     }
 
-    connectToL1(provider: ethers.Provider) {
+    connectToL1(provider: ethers.Provider): Wallet {
         return new Wallet(this.signingKey, this.provider, provider);
     }
 
@@ -46,12 +46,12 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         return new Wallet(wallet.signingKey, null, wallet.provider);
     }
 
-    static override async fromEncryptedJson(json: string, password: string | Uint8Array, callback?: ProgressCallback) {
+    static override async fromEncryptedJson(json: string, password: string | Uint8Array, callback?: ProgressCallback): Promise<Wallet> {
         const wallet = await super.fromEncryptedJson(json, password, callback);
         return new Wallet(wallet.signingKey);
     }
 
-    static override fromEncryptedJsonSync(json: string, password: string | Uint8Array) {
+    static override fromEncryptedJsonSync(json: string, password: string | Uint8Array): Wallet {
         const wallet = super.fromEncryptedJsonSync(json, password);
         return new Wallet(wallet.signingKey);
     }

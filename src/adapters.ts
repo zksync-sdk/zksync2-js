@@ -19,9 +19,9 @@ import {
     undoL1ToL2Alias
 } from './utils';
 import {
-    IERC20__factory,
-    IL1Bridge__factory,
-    IL2Bridge__factory,
+    IERC20__factory, IL1Bridge,
+    IL1Bridge__factory, IL2Bridge,
+    IL2Bridge__factory, IZkSync,
     IZkSync__factory
 } from '../typechain';
 import {Address, BalancesMap, Eip712Meta, FullDepositFee, PriorityOpResponse, TransactionResponse} from './types';
@@ -48,12 +48,12 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             throw new Error('Must be implemented by the derived class!');
         }
 
-        async getMainContract() {
+        async getMainContract(): Promise<IZkSync> {
             const address = await this._providerL2().getMainContractAddress();
             return IZkSync__factory.connect(address, this._signerL1());
         }
 
-        async getL1BridgeContracts() {
+        async getL1BridgeContracts(): Promise<{erc20: IL1Bridge}> {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
             return {
                 erc20: IL1Bridge__factory.connect(addresses.erc20L1, this._signerL1())
@@ -80,7 +80,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             return await erc20contract.allowance(await this.getAddress(), bridgeAddress, { blockTag });
         }
 
-        async l2TokenAddress(token: Address) {
+        async l2TokenAddress(token: Address): Promise<string> {
             if (token == ETH_ADDRESS) {
                 return ETH_ADDRESS;
             } else {
@@ -461,7 +461,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             };
         }
 
-        async finalizeWithdrawal(withdrawalHash: BytesLike, index: number = 0, overrides?: ethers.Overrides) {
+        async finalizeWithdrawal(withdrawalHash: BytesLike, index: number = 0, overrides?: ethers.Overrides): Promise<ethers.ContractTransactionResponse> {
             const {l1BatchNumber, l2MessageIndex, l2TxNumberInBlock, message, sender, proof} =
                 await this.finalizeWithdrawalParams(withdrawalHash, index);
 
@@ -655,7 +655,7 @@ export function AdapterL2<TBase extends Constructor<TxSender>>(Base: TBase) {
             throw new Error('Must be implemented by the derived class!');
         }
 
-        async getBalance(token?: Address, blockTag: BlockTag = 'committed') {
+        async getBalance(token?: Address, blockTag: BlockTag = 'committed'): Promise<bigint> {
             return await this._providerL2().getBalance(await this.getAddress(), blockTag, token);
         }
 
@@ -663,7 +663,7 @@ export function AdapterL2<TBase extends Constructor<TxSender>>(Base: TBase) {
             return await this._providerL2().getAllAccountBalances(await this.getAddress());
         }
 
-        async getL2BridgeContracts() {
+        async getL2BridgeContracts(): Promise<{erc20: IL2Bridge}> {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
             return {
                 erc20: IL2Bridge__factory.connect(addresses.erc20L2, this._signerL2())
