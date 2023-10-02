@@ -119,8 +119,8 @@ export function create2Address(
     sender: Address,
     bytecodeHash: BytesLike,
     salt: BytesLike,
-    input: BytesLike,
-) {
+    input: BytesLike = "",
+): string {
     const prefix = ethers.keccak256(ethers.toUtf8Bytes("zksyncCreate2"));
     const inputHash = ethers.keccak256(input);
     const addressBytes = ethers
@@ -155,7 +155,7 @@ export function createAddress(sender: Address, senderNonce: BigNumberish) {
 export async function checkBaseCost(
     baseCost: ethers.BigNumberish,
     value: ethers.BigNumberish | Promise<ethers.BigNumberish>,
-) {
+): Promise<void> {
     if (baseCost > (await value)) {
         throw new Error(
             `The base cost of performing the priority operation is higher than the provided value parameter ` +
@@ -167,18 +167,18 @@ export async function checkBaseCost(
 export function serializeEip712(
     transaction: TransactionLike,
     signature?: ethers.SignatureLike,
-) {
+): string {
     if (!transaction.chainId) {
         throw Error("Transaction chainId isn't set");
     }
 
     if (!transaction.from) {
         throw new Error(
-            "Explicitly providing `from` field is reqiured for EIP712 transactions",
+            "Explicitly providing `from` field is required for EIP712 transactions",
         );
     }
     const from = transaction.from;
-    const meta: Eip712Meta = transaction.customData;
+    const meta: Eip712Meta = transaction.customData ?? {};
     let maxFeePerGas = transaction.maxFeePerGas || transaction.gasPrice || 0;
     let maxPriorityFeePerGas = transaction.maxPriorityFeePerGas || maxFeePerGas;
 
@@ -263,7 +263,7 @@ export function hashBytecode(bytecode: ethers.BytesLike): Uint8Array {
 
 // TODO: extend ethers.Transaction and add custom fields
 export function parseEip712(payload: ethers.BytesLike): TransactionLike {
-    function handleAddress(value: string): string {
+    function handleAddress(value: string): string | null {
         if (value === "0x") {
             return null;
         }
@@ -323,7 +323,7 @@ export function parseEip712(payload: ethers.BytesLike): TransactionLike {
 
     if (
         (ethers.hexlify(ethSignature.r) == "0x" || ethers.hexlify(ethSignature.s) == "0x") &&
-        !transaction.customData.customSignature
+        !transaction.customData?.customSignature
     ) {
         return transaction;
     }
@@ -331,12 +331,12 @@ export function parseEip712(payload: ethers.BytesLike): TransactionLike {
     if (
         ethSignature.v !== 0 &&
         ethSignature.v !== 1 &&
-        !transaction.customData.customSignature
+        !transaction.customData?.customSignature
     ) {
         throw new Error("Failed to parse signature");
     }
 
-    if (!transaction.customData.customSignature) {
+    if (!transaction.customData?.customSignature) {
         transaction.signature = ethers.Signature.from(ethSignature);
     }
 
@@ -375,7 +375,7 @@ export function getL2HashFromPriorityOp(
     txReceipt: ethers.TransactionReceipt,
     zkSyncAddress: Address,
 ): string {
-    let txHash: string = null;
+    let txHash: string | null = null;
     for (const log of txReceipt.logs) {
         if (log.address.toLowerCase() != zkSyncAddress.toLowerCase()) {
             continue;
@@ -557,8 +557,8 @@ export async function estimateDefaultBridgeDepositL2Gas(
             l2Value: amount,
         });
     } else {
-        const l1ERC20BridgeAddresses = (await providerL2.getDefaultBridgeAddresses()).erc20L1;
-        const erc20BridgeAddress = (await providerL2.getDefaultBridgeAddresses()).erc20L2;
+        const l1ERC20BridgeAddresses = (await providerL2.getDefaultBridgeAddresses()).erc20L1 as string;
+        const erc20BridgeAddress = (await providerL2.getDefaultBridgeAddresses()).erc20L2 as string;
         const bridgeData = await getERC20DefaultBridgeData(token, providerL1);
         return await estimateCustomBridgeDepositL2Gas(
             providerL2,
@@ -589,7 +589,7 @@ export async function estimateCustomBridgeDepositL2Gas(
     amount: BigNumberish,
     to: Address,
     bridgeData: BytesLike,
-    from?: Address,
+    from: Address,
     gasPerPubdataByte?: BigNumberish,
 ): Promise<bigint> {
     const calldata = await getERC20BridgeCalldata(token, from, to, amount, bridgeData);

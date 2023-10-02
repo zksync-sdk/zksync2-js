@@ -324,6 +324,38 @@ describe("Provider", () => {
         });
     });
 
+    describe("#estimateGas()", () => {
+        it("should return gas estimation of transaction", async () => {
+            const result = await provider.estimateGas({
+                from: ADDRESS,
+                to: await provider.l2TokenAddress(TOKENS.DAI.address),
+                data: utils.IERC20.encodeFunctionData("approve", [RECEIVER, 1]),
+            });
+            expect(result > 0).to.be.true;
+
+        });
+
+        // it("should return gas estimation of EIP712 transaction", async () => {
+        //     // const tokenApprove = await provider.estimateGas({
+        //     //     from: PUBLIC_KEY,
+        //     //     to: tokenAddress,
+        //     //     data: utils.IERC20.encodeFunctionData("approve", [RECEIVER, 1]),
+        //     //     customData: {
+        //     //         gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+        //     //         paymasterParams,
+        //     //     }
+        //     // });
+        //     // console.log(`Gas token approval (EIP-712): ${tokenApprove}`);
+        //
+        //     const result = await provider.estimateFee({
+        //         from: ADDRESS,
+        //         to: RECEIVER,
+        //         value: `0x${BigInt(7_000_000_000).toString(16)}`,
+        //     });
+        //     expect(result).not.to.be.null;
+        // });
+    });
+
     describe("#getFilterChanges()", () => {
         it("should return filtered logs", async () => {
             const filter = await provider.newFilter({

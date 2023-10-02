@@ -9,12 +9,13 @@ import {
     getNumber,
     hexlify,
     isHexString,
-    LogParams,
     Signature,
     TransactionReceiptParams,
     TransactionResponseParams,
     zeroPadValue,
 } from "ethers";
+
+import {LogParams} from "./types";
 
 const BN_0 = BigInt(0);
 
@@ -297,7 +298,7 @@ export function formatTransactionResponse(value: any): TransactionResponseParams
     } catch (e) {
         // DepositL2 transactions does not have V,R,S values
         // which causes signature computation to fail
-        result.signature = Signature.from(null);
+        result.signature = Signature.from(undefined);
     }
 
     // Some backends omit ChainId on legacy transactions, but we can compute it
