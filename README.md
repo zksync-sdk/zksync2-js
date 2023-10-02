@@ -1,10 +1,10 @@
-zkSync 2 JavaScript SDK
+zksync-web3 JavaScript SDK
 ===
 
 
 ## Requirements
 
-- `ethers`: ^5.7.0
+- `ethers: ^5.7.0`
 
 
 ## Installation
