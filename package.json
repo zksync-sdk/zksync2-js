@@ -3,6 +3,7 @@
   "version": "0.15.5",
   "main": "build/src/index.js",
   "types": "build/src/index.d.ts",
+  "description": "A Web3 library for interacting with the ZkSync Layer 2 scaling solution.",
   "files": [
     "build/",
     "abi/",
@@ -10,6 +11,23 @@
     "typechain/"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zksync-sdk/zksync2-js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zksync-sdk/zksync2-js/issues"
+  },
+  "homepage": "https://github.com/zksync-sdk/zksync2-js/tree/ethers-v5#readme",
+  "keywords": [
+    "zksync",
+    "web3",
+    "ethereum",
+    "layer2"
+  ],
+  "dependencies": {
+    "ethers": "^5.7.0"
+  },
   "devDependencies": {
     "@typechain/ethers-v5": "^2.0.0",
     "@types/chai": "^4.2.19",
@@ -27,9 +45,12 @@
     "ethers": "^5.7.0"
   },
   "scripts": {
-    "tests": "mocha -r ts-node/register --bail tests/setup.test.ts tests/unit/*.test.ts tests/integration/*.test.ts",
+    "test": "mocha -r ts-node/register --bail tests/setup.test.ts tests/unit/*.test.ts tests/integration/*.test.ts",
     "build": "tsc && cp -f typechain/*.d.ts build/typechain && ncp ./abi ./build/abi",
     "watch": "tsc --watch",
     "types": "find ./abi -name \"*.json\" -print0 | xargs -0 -I {} npx typechain --target ethers-v5 --outDir typechain {}"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
