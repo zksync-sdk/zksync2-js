@@ -48,13 +48,13 @@ const provider = Provider.getDefaultProvider(types.Network.Goerli); // zkSync Er
 const ethProvider = ethers.getDefaultProvider("goerli"); // goerli testnet (L1)
 ```
 
-### Get latest block number
+### Get the latest block number
 
 ```ts
 const blockNumber = await provider.getBlockNumber();
 ```
 
-### Get latest block
+### Get the latest block
 
 ```ts
 const block = await provider.getBlock("latest");

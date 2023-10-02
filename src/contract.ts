@@ -5,7 +5,7 @@ import {
     Interface,
     ethers,
     ContractRunner,
-    ContractTransaction,
+    ContractTransaction, BaseContract, ContractTransactionResponse,
 } from "ethers";
 import {
     hashBytecode,
@@ -35,7 +35,7 @@ export class ContractFactory extends ethers.ContractFactory {
         salt: BytesLike,
         bytecodeHash: BytesLike,
         constructorCalldata: BytesLike,
-    ) {
+    ): string {
         if (this.deploymentType == "create") {
             return CONTRACT_DEPLOYER.encodeFunctionData("create", [
                 salt,
@@ -78,23 +78,24 @@ export class ContractFactory extends ethers.ContractFactory {
             type: EIP712_TX_TYPE,
         };
 
-        txRequest.customData ??= {};
-        txRequest.customData.factoryDeps ??= [];
-        txRequest.customData.gasPerPubdata ??= DEFAULT_GAS_PER_PUBDATA_LIMIT;
+        tx.customData ??= {};
+        tx.customData.factoryDeps ??= [];
+        tx.customData.gasPerPubdata ??= DEFAULT_GAS_PER_PUBDATA_LIMIT;
 
         // The number of factory deps is relatively low, so it is efficient enough.
-        if (!tx.customData.factoryDeps.includes(this.bytecode)) {
+        if (!tx.customData || !tx.customData.factoryDeps.includes(this.bytecode)) {
             tx.customData.factoryDeps.push(this.bytecode);
         }
 
         return tx;
     }
 
-    override async deploy(...args: Array<any>): Promise<Contract> {
+    override async deploy(...args: Array<any>) {
         const contract = await super.deploy(...args);
+        // @ts-ignore
+        const deployTxReceipt = await this.runner?.provider?.getTransactionReceipt(contract.deploymentTransaction().hash) ;
 
-        const deployTxReceipt = await contract.deploymentTransaction().wait();
-
+        // @ts-ignore
         const deployedAddresses = getDeployedContracts(deployTxReceipt).map(
             (info) => info.deployedAddress,
         );
@@ -103,8 +104,9 @@ export class ContractFactory extends ethers.ContractFactory {
             deployedAddresses[deployedAddresses.length - 1],
             contract.interface.fragments,
             contract.runner,
-        );
+        ) as BaseContract & { deploymentTransaction(): ContractTransactionResponse; } & Omit<BaseContract, keyof BaseContract>;
 
+        // @ts-ignore
         contractWithCorrectAddress.deploymentTransaction = () =>
             contract.deploymentTransaction();
         return contractWithCorrectAddress;

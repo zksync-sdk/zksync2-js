@@ -6,7 +6,7 @@ import {
     hashBytecode,
     serializeEip712,
 } from "./utils";
-import { Signature, TransactionLike, TransactionRequest, TransactionResponse } from "./types";
+import {Address, Signature, TransactionLike, TransactionRequest, TransactionResponse} from "./types";
 import { AdapterL1, AdapterL2 } from "./adapters";
 
 export const eip712Types = {
@@ -97,7 +97,9 @@ export class EIP712Signer {
 // const signer = provider.getSigner();
 // const tx = await signer.sendTransaction({ ... });
 export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
+    // @ts-ignore
     public override provider: Provider;
+    // @ts-ignore
     public eip712: EIP712Signer;
 
     override _signerL2() {
@@ -128,7 +130,7 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
             return (await super.sendTransaction(transaction)) as TransactionResponse;
         } else {
             const address = await this.getAddress();
-            const from = await ethers.resolveAddress(transaction.from);
+            const from = await ethers.resolveAddress(transaction.from as Address);
             if (from.toLowerCase() != address.toLowerCase()) {
                 throw new Error("Transaction `from` address mismatch");
             }
@@ -141,10 +143,11 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
                 gasLimit:
                     transaction.gasLimit ?? (await this.provider.estimateGas(transaction)),
                 chainId: transaction.chainId ?? (await this.provider.getNetwork()).chainId,
-                to: await ethers.resolveAddress(transaction.to),
-                customData: this._fillCustomData(transaction.customData),
+                to: await ethers.resolveAddress(transaction.to as Address),
+                customData: this._fillCustomData(transaction.customData ?? {}),
                 from,
             };
+            tx.customData ??= {};
             tx.customData.customSignature = await this.eip712.sign(tx);
 
             const txBytes = serializeEip712(tx);
@@ -161,6 +164,7 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
 // const signer = L1Signer.from(ethProvider.getSigner(), provider);
 // const tx = await signer.deposit({ ... });
 export class L1Signer extends AdapterL1(ethers.JsonRpcSigner) {
+    // @ts-ignore
     public providerL2: Provider;
     override _providerL2() {
         return this.providerL2;
@@ -187,7 +191,9 @@ export class L1Signer extends AdapterL1(ethers.JsonRpcSigner) {
 }
 
 export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
+    // @ts-ignore
     public override provider: Provider;
+    // @ts-ignore
     public eip712: EIP712Signer;
 
     override _signerL2() {
@@ -218,7 +224,7 @@ export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
             return (await super.sendTransaction(transaction)) as TransactionResponse;
         } else {
             const address = await this.getAddress();
-            const from = await ethers.resolveAddress(transaction.from);
+            const from = await ethers.resolveAddress(transaction.from as Address);
             if (from.toLowerCase() != address.toLowerCase()) {
                 throw new Error("Transaction `from` address mismatch");
             }
@@ -231,10 +237,11 @@ export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
                 gasLimit:
                     transaction.gasLimit ?? (await this.provider.estimateGas(transaction)),
                 chainId: transaction.chainId ?? (await this.provider.getNetwork()).chainId,
-                to: await ethers.resolveAddress(transaction.to),
-                customData: this._fillCustomData(transaction.customData),
+                to: await ethers.resolveAddress(transaction.to as Address),
+                customData: this._fillCustomData(transaction.customData ?? {}),
                 from,
             };
+            tx.customData ??= {};
             tx.customData.customSignature = await this.eip712.sign(tx);
 
             const txBytes = serializeEip712(tx);
@@ -251,12 +258,14 @@ export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
 // const signer = L1Signer.from(provider.getSigner(), zksyncProvider);
 // const tx = await signer.deposit({ ... });
 export class L1VoidSigner extends AdapterL1(ethers.VoidSigner) {
+    // @ts-ignore
     public providerL2: Provider;
     override _providerL2() {
         return this.providerL2;
     }
 
-    override _providerL1() {
+    override _providerL1(): ethers.Provider {
+        // @ts-ignore
         return this.provider;
     }
 

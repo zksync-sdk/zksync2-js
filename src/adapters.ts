@@ -37,7 +37,7 @@ import {
     Address,
     BalancesMap,
     Eip712Meta,
-    FullDepositFee,
+    FullDepositFee, MessageProof,
     PriorityOpResponse,
     TransactionResponse,
 } from "./types";
@@ -71,9 +71,13 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
         async getL1BridgeContracts(): Promise<{ erc20: IL1Bridge }> {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
-            return {
-                erc20: IL1Bridge__factory.connect(addresses.erc20L1, this._signerL1()),
-            };
+            if (addresses.erc20L1) {
+                return {
+                    erc20: IL1Bridge__factory.connect(addresses.erc20L1, this._signerL1()),
+                };
+            }
+            throw new Error("Default ERC20 L1 bridge contract not found!");
+
         }
 
         async getBalanceL1(token?: Address, blockTag?: BlockTag): Promise<bigint> {
@@ -128,7 +132,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 delete overrides.bridgeAddress;
             }
 
-            return await erc20contract.approve(bridgeAddress, amount, overrides);
+            return await erc20contract.approve(bridgeAddress as Address, amount, overrides);
         }
 
         async getBaseCost(params: {
@@ -138,7 +142,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }): Promise<bigint> {
             const zksyncContract = await this.getMainContract();
             const parameters = { ...layer1TxDefaults(), ...params };
-            parameters.gasPrice ??= (await this._providerL1().getFeeData()).gasPrice;
+            parameters.gasPrice ??= (await this._providerL1().getFeeData()).gasPrice as BigNumberish;
             parameters.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
 
             return await zksyncContract.l2TransactionBaseCost(
@@ -292,6 +296,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const zksyncContract = await this.getMainContract();
 
             const baseCost = await zksyncContract.l2TransactionBaseCost(
+                // @ts-ignore
                 await gasPriceForEstimation,
                 tx.l2GasLimit,
                 tx.gasPerPubdataByte,
@@ -385,6 +390,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             }
 
             const baseCost = await zksyncContract.l2TransactionBaseCost(
+                // @ts-ignore
                 gasPriceForMessages,
                 l2GasLimit,
                 tx.gasPerPubdataByte,
@@ -400,7 +406,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                             ? L1_RECOMMENDED_MIN_ETH_DEPOSIT_GAS_LIMIT
                             : L1_RECOMMENDED_MIN_ERC20_DEPOSIT_GAS_LIMIT,
                     ) *
-                        BigInt(gasPriceForMessages) +
+                        BigInt(gasPriceForMessages as BigNumberish) +
                     baseCost;
                 const formattedRecommendedBalance = ethers.formatEther(recommendedETHBalance);
                 throw new Error(
@@ -445,9 +451,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             if (tx.overrides.gasPrice) {
                 fullCost.gasPrice = BigInt(await tx.overrides.gasPrice);
             } else {
-                fullCost.maxFeePerGas = BigInt(await tx.overrides.maxFeePerGas);
+                fullCost.maxFeePerGas = BigInt(await tx.overrides.maxFeePerGas as bigint);
                 fullCost.maxPriorityFeePerGas = BigInt(
-                    await tx.overrides.maxPriorityFeePerGas,
+                    await tx.overrides.maxPriorityFeePerGas as bigint,
                 );
             }
 
@@ -491,6 +497,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             );
             const sender = ethers.dataSlice(log.topics[1], 12);
             const proof = await this._providerL2().getLogProof(withdrawalHash, l2ToL1LogIndex);
+            if (!proof) {
+                throw new Error("Log proof not found!");
+            }
             const message = ethers.AbiCoder.defaultAbiCoder().decode(["bytes"], log.data)[0];
             return {
                 l1BatchNumber: log.l1BatchNumber,
@@ -521,9 +530,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 const zksync = IZkSync__factory.connect(contractAddress, this._signerL1());
 
                 return await zksync.finalizeEthWithdrawal(
-                    l1BatchNumber,
-                    l2MessageIndex,
-                    l2TxNumberInBlock,
+                    l1BatchNumber as BigNumberish,
+                    l2MessageIndex as BigNumberish,
+                    l2TxNumberInBlock as BigNumberish,
                     message,
                     proof,
                     overrides ?? {},
@@ -536,9 +545,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 this._signerL1(),
             );
             return await l1Bridge.finalizeWithdrawal(
-                l1BatchNumber,
-                l2MessageIndex,
-                l2TxNumberInBlock,
+                l1BatchNumber as BigNumberish,
+                l2MessageIndex as BigNumberish,
+                l2TxNumberInBlock as BigNumberish,
                 message,
                 proof,
                 overrides ?? {},
@@ -555,13 +564,16 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             // `getLogProof` is called not to get proof but
             // to get the index of the corresponding L2->L1 log,
             // which is returned as `proof.id`.
-            const proof = await this._providerL2().getLogProof(withdrawalHash, l2ToL1LogIndex);
+            const proof = await this._providerL2().getLogProof(withdrawalHash, l2ToL1LogIndex) as MessageProof;
+            if (!proof) {
+                throw new Error("Log proof not found!");
+            }
 
             if (isETH(sender)) {
                 const contractAddress = await this._providerL2().getMainContractAddress();
                 const zksync = IZkSync__factory.connect(contractAddress, this._signerL1());
 
-                return await zksync.isEthWithdrawalFinalized(log.l1BatchNumber, proof.id);
+                return await zksync.isEthWithdrawalFinalized(log.l1BatchNumber as BigNumberish, proof.id);
             }
 
             const l2Bridge = IL2Bridge__factory.connect(sender, this._providerL2());
@@ -570,7 +582,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 this._providerL1(),
             );
 
-            return await l1Bridge.isWithdrawalFinalized(log.l1BatchNumber, proof.id);
+            return await l1Bridge.isWithdrawalFinalized(log.l1BatchNumber as BigNumberish, proof.id);
         }
 
         async claimFailedDeposit(depositHash: BytesLike, overrides?: ethers.Overrides) {
@@ -592,6 +604,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             // Undo the aliasing, since the Mailbox contract set it as for contract address.
             const l1BridgeAddress = undoL1ToL2Alias(receipt.from);
             const l2BridgeAddress = receipt.to;
+            if (!l2BridgeAddress) {
+                throw new Error("L2 bridge address not found!");
+            }
 
             const l1Bridge = IL1Bridge__factory.connect(l1BridgeAddress, this._signerL1());
             const l2Bridge = IL2Bridge__factory.connect(l2BridgeAddress, this._providerL2());
@@ -602,13 +617,16 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 depositHash,
                 successL2ToL1LogIndex,
             );
+            if (!proof) {
+                throw new Error("Log proof not found!");
+            }
             return await l1Bridge.claimFailedDeposit(
                 calldata["_l1Sender"],
                 calldata["_l1Token"],
                 depositHash,
-                receipt.l1BatchNumber,
+                receipt.l1BatchNumber as BigNumberish,
                 proof.id,
-                receipt.l1BatchTxIndex,
+                receipt.l1BatchTxIndex as BigNumberish,
                 proof.proof,
                 overrides ?? {},
             );
@@ -690,7 +708,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const gasPriceForEstimation = overrides.maxFeePerGas || overrides.gasPrice;
 
             const baseCost = await this.getBaseCost({
-                gasPrice: await gasPriceForEstimation,
+                gasPrice: await gasPriceForEstimation as BigNumberish,
                 gasPerPubdataByte,
                 gasLimit: l2GasLimit,
             });
@@ -737,9 +755,12 @@ export function AdapterL2<TBase extends Constructor<TxSender>>(Base: TBase) {
 
         async getL2BridgeContracts(): Promise<{ erc20: IL2Bridge }> {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
-            return {
-                erc20: IL2Bridge__factory.connect(addresses.erc20L2, this._signerL2()),
-            };
+            if (addresses.erc20L2) {
+                return {
+                    erc20: IL2Bridge__factory.connect(addresses.erc20L2, this._signerL2()),
+                };
+            }
+            throw new Error("Default ERC20 L2 bridge contract not found!");
         }
 
         _fillCustomData(data: Eip712Meta): Eip712Meta {
@@ -800,15 +821,24 @@ async function insertGasPrice(l1Provider: ethers.Provider, overrides: ethers.Ove
         const baseFee = l1FeeData.maxFeePerGas
             ? getBaseCostFromFeeData(l1FeeData)
             : l1FeeData.gasPrice;
+        if (!baseFee) {
+            throw new Error("Failed to calculate base fee");
+        }
 
         // ethers.js by default uses multiplication by 2, but since the price for the L2 part
         // will depend on the L1 part, doubling base fee is typically too much.
-        overrides.maxFeePerGas = (baseFee * 3n) / 2n + l1FeeData.maxPriorityFeePerGas;
+        overrides.maxFeePerGas = (baseFee * 3n) / 2n + (l1FeeData.maxPriorityFeePerGas ?? 0n);
         overrides.maxPriorityFeePerGas = l1FeeData.maxPriorityFeePerGas;
     }
 }
 
 function getBaseCostFromFeeData(feeData: ethers.FeeData): bigint {
+    if (!feeData.maxFeePerGas) {
+        throw new Error("MaxFeePerGas is null");
+    }
+    if (!feeData.maxPriorityFeePerGas) {
+        throw new Error("MaxPriorityFeePerGas is null");
+    }
     // reverse the logic implemented in the abstract-provider.ts (line 917)
     return (feeData.maxFeePerGas - feeData.maxPriorityFeePerGas) / 2n;
 }

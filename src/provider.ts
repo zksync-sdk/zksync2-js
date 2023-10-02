@@ -14,6 +14,7 @@ import {
     JsonRpcResult,
     JsonRpcPayload,
     resolveProperties,
+    FetchRequest,
 } from "ethers";
 import { IERC20__factory, IEthToken__factory, IL2Bridge__factory } from "../typechain";
 import {
@@ -56,275 +57,487 @@ import {
     formatTransactionReceipt,
 } from "./format";
 
-export class Provider extends ethers.JsonRpcProvider {
-    protected contractAddresses: {
+
+type Constructor<T = {}> = new (...args: any[]) => T;
+
+export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiProvider>> (ProviderType: TBase) {
+    return class Provider extends ProviderType {
+
+        override _send(payload: JsonRpcPayload | Array<JsonRpcPayload>): Promise<Array<JsonRpcResult | JsonRpcError>> {
+            throw new Error("Must be implemented by the derived class!");
+        }
+
+        get contractAddresses(): {mainContract?: Address,
+            erc20BridgeL1?: Address,
+            erc20BridgeL2?: Address} {
+            throw new Error("Must be implemented by the derived class!");
+        }
+
+        override _getBlockTag(blockTag?: BlockTag): string | Promise<string> {
+            if (blockTag == "committed") {
+                return "committed";
+            }
+            return super._getBlockTag(blockTag);
+        }
+
+        override _wrapLog(value: any, network: ethers.Network): Log {
+            return new Log(formatLog(value), this);
+        }
+
+        override _wrapBlock(value: any, network: ethers.Network): Block {
+            const block: any = formatBlock(value);
+            return new Block(super._wrapBlock(block, network), this);
+        }
+
+        override _wrapTransactionResponse(
+            value: any,
+            network: ethers.Network,
+        ): TransactionResponse {
+            const tx: any = formatTransactionResponse(value);
+            return new TransactionResponse(super._wrapTransactionResponse(tx, network), this);
+        }
+
+        override _wrapTransactionReceipt(value: any, network: ethers.Network): TransactionReceipt {
+            const receipt: any = formatTransactionReceipt(value);
+            return new TransactionReceipt(receipt, this);
+        }
+
+        override async getTransactionReceipt(txHash: string): Promise<TransactionReceipt> {
+            while (true) {
+                const receipt = (await super.getTransactionReceipt(txHash)) as TransactionReceipt;
+                if (receipt.blockNumber) {
+                    return receipt;
+                }
+                await sleep(500);
+            }
+        }
+
+        override async getTransaction(txHash: string): Promise<TransactionResponse> {
+            return (await super.getTransaction(txHash)) as TransactionResponse;
+        }
+
+        override async getBlock(
+            blockHashOrBlockTag: BlockTag,
+            includeTxs?: boolean,
+        ): Promise<Block> {
+            return (await super.getBlock(blockHashOrBlockTag, includeTxs)) as Block;
+        }
+
+        override async getLogs(filter: Filter | FilterByBlockHash): Promise<Log[]> {
+            return (await super.getLogs(filter)) as Log[];
+        }
+
+        override async getBalance(address: Address, blockTag?: BlockTag, tokenAddress?: Address): Promise<bigint> {
+            if (tokenAddress == null || isETH(tokenAddress)) {
+                // requesting ETH balance
+                return await super.getBalance(address, blockTag);
+            } else {
+                try {
+                    let token = IERC20__factory.connect(tokenAddress, this);
+                    return await token.balanceOf(address, { blockTag });
+                } catch {
+                    return 0n;
+                }
+            }
+        }
+
+        async l2TokenAddress(token: Address): Promise<string> {
+            if (token == ETH_ADDRESS) {
+                return ETH_ADDRESS;
+            } else {
+                const erc20BridgeAddress = (await this.getDefaultBridgeAddresses()).erc20L2;
+                const erc20Bridge = IL2Bridge__factory.connect(erc20BridgeAddress!, this);
+                return await erc20Bridge.l2TokenAddress(token);
+            }
+        }
+
+        async l1TokenAddress(token: Address): Promise<string> {
+            if (token == ETH_ADDRESS) {
+                return ETH_ADDRESS;
+            } else {
+                const erc20BridgeAddress = (await this.getDefaultBridgeAddresses()).erc20L2;
+                const erc20Bridge = IL2Bridge__factory.connect(erc20BridgeAddress!, this);
+                return await erc20Bridge.l1TokenAddress(token);
+            }
+        }
+
+        async estimateGasL1(transaction: TransactionRequest): Promise<bigint> {
+            return await this.send("zks_estimateGasL1ToL2", [this.getRpcTransaction(transaction)]);
+        }
+
+        async estimateFee(transaction: TransactionRequest): Promise<Fee> {
+            return await this.send("zks_estimateFee", [transaction]);
+        }
+
+        async getGasPrice(): Promise<bigint> {
+            const feeData = await this.getFeeData();
+            return feeData.gasPrice!;
+        }
+
+        async getLogProof(txHash: BytesLike, index?: number): Promise<MessageProof | null> {
+            return await this.send("zks_getL2ToL1LogProof", [ethers.hexlify(txHash), index]);
+        }
+
+        async getL1BatchBlockRange(l1BatchNumber: number): Promise<[number, number] | null> {
+            const range = await this.send("zks_getL1BatchBlockRange", [l1BatchNumber]);
+            if (range == null) {
+                return null;
+            }
+            return [parseInt(range[0], 16), parseInt(range[1], 16)];
+        }
+
+        async getMainContractAddress(): Promise<Address> {
+            if (!this.contractAddresses.mainContract) {
+                this.contractAddresses.mainContract = await this.send("zks_getMainContract", []);
+            }
+            return this.contractAddresses.mainContract!;
+        }
+
+        async getTestnetPaymasterAddress(): Promise<Address | null> {
+            // Unlike contract's addresses, the testnet paymaster is not cached, since it can be trivially changed
+            // on the fly by the server and should not be relied on to be constant
+            return await this.send("zks_getTestnetPaymaster", []);
+        }
+
+        async getDefaultBridgeAddresses() {
+            if (!this.contractAddresses.erc20BridgeL1) {
+                let addresses = await this.send("zks_getBridgeContracts", []);
+                this.contractAddresses.erc20BridgeL1 = addresses.l1Erc20DefaultBridge;
+                this.contractAddresses.erc20BridgeL2 = addresses.l2Erc20DefaultBridge;
+            }
+            return {
+                erc20L1: this.contractAddresses.erc20BridgeL1,
+                erc20L2: this.contractAddresses.erc20BridgeL2,
+            };
+        }
+
+        async getConfirmedTokens(start: number = 0, limit: number = 255): Promise<Token[]> {
+            const tokens: Token[] = await this.send("zks_getConfirmedTokens", [start, limit]);
+            return tokens.map((token) => ({ address: token.l2Address, ...token }));
+        }
+
+        async getAllAccountBalances(address: Address): Promise<BalancesMap> {
+            let balances = await this.send("zks_getAllAccountBalances", [address]);
+            for (let token in balances) {
+                balances[token] = BigInt(balances[token]);
+            }
+            return balances;
+        }
+
+        async l1ChainId(): Promise<number> {
+            const res = await this.send("zks_L1ChainId", []);
+            return Number(res);
+        }
+
+        async getL1BatchNumber(): Promise<number> {
+            const number = await this.send("zks_L1BatchNumber", []);
+            return Number(number);
+        }
+
+        async getL1BatchDetails(number: number): Promise<BatchDetails> {
+            return await this.send("zks_getL1BatchDetails", [number]);
+        }
+
+        async getBlockDetails(number: number): Promise<BlockDetails> {
+            return await this.send("zks_getBlockDetails", [number]);
+        }
+
+        async getTransactionDetails(txHash: BytesLike): Promise<TransactionDetails> {
+            return await this.send("zks_getTransactionDetails", [txHash]);
+        }
+
+        async getWithdrawTx(transaction: {
+            token: Address;
+            amount: BigNumberish;
+            from?: Address;
+            to?: Address;
+            bridgeAddress?: Address;
+            overrides?: ethers.Overrides;
+        }): Promise<EthersTransactionRequest> {
+            const { ...tx } = transaction;
+
+            if (tx.to == null && tx.from == null) {
+                throw new Error("withdrawal target address is undefined");
+            }
+
+            tx.to ??= tx.from;
+            tx.overrides ??= {};
+            tx.overrides.from ??= tx.from;
+
+            if (isETH(tx.token)) {
+                if (!tx.overrides.value) {
+                    tx.overrides.value = tx.amount;
+                }
+                const passedValue = BigInt(tx.overrides.value);
+
+                if (passedValue != BigInt(tx.amount)) {
+                    // To avoid users shooting themselves into the foot, we will always use the amount to withdraw
+                    // as the value
+
+                    throw new Error("The tx.value is not equal to the value withdrawn");
+                }
+
+                const ethL2Token = IEthToken__factory.connect(L2_ETH_TOKEN_ADDRESS, this);
+                return ethL2Token.withdraw.populateTransaction(tx.to as Address, tx.overrides);
+            }
+
+            if (tx.bridgeAddress == null) {
+                const bridges = await this.getDefaultBridgeAddresses();
+                tx.bridgeAddress = bridges.erc20L2;
+            }
+
+            const bridge = IL2Bridge__factory.connect(tx.bridgeAddress!, this);
+            return bridge.withdraw.populateTransaction(tx.to as Address, tx.token, tx.amount, tx.overrides);
+        }
+
+        async estimateGasWithdraw(transaction: {
+            token: Address;
+            amount: BigNumberish;
+            from?: Address;
+            to?: Address;
+            bridgeAddress?: Address;
+            overrides?: ethers.Overrides;
+        }): Promise<bigint> {
+            const withdrawTx = await this.getWithdrawTx(transaction);
+            return await this.estimateGas(withdrawTx);
+        }
+
+        async getTransferTx(transaction: {
+            to: Address;
+            amount: BigNumberish;
+            from?: Address;
+            token?: Address;
+            overrides?: ethers.Overrides;
+        }): Promise<EthersTransactionRequest> {
+            const { ...tx } = transaction;
+            tx.overrides ??= {};
+            tx.overrides.from ??= tx.from;
+
+            if (tx.token == null || tx.token == ETH_ADDRESS) {
+                return {
+                    ...tx.overrides,
+                    to: tx.to,
+                    value: tx.amount,
+                };
+            } else {
+                const token = IERC20__factory.connect(tx.token, this);
+                return await token.transfer.populateTransaction(tx.to, tx.amount, tx.overrides);
+            }
+        }
+
+        async estimateGasTransfer(transaction: {
+            to: Address;
+            amount: BigNumberish;
+            from?: Address;
+            token?: Address;
+            overrides?: ethers.Overrides;
+        }): Promise<bigint> {
+            const transferTx = await this.getTransferTx(transaction);
+            return await this.estimateGas(transferTx);
+        }
+
+        async newFilter(filter: FilterByBlockHash | Filter): Promise<bigint> {
+            const id = await this.send("eth_newFilter", [await this._getFilter(filter)]);
+            return BigInt(id);
+        }
+
+        async newBlockFilter(): Promise<bigint> {
+            const id = await this.send("eth_newBlockFilter", []);
+            return BigInt(id);
+        }
+
+        async newPendingTransactionsFilter(): Promise<bigint> {
+            const id = await this.send("eth_newPendingTransactionFilter", []);
+            return BigInt(id);
+        }
+
+        async getFilterChanges(idx: bigint): Promise<Array<Log | string>> {
+            const logs = await this.send("eth_getFilterChanges", [ethers.toBeHex(idx)]);
+            const network = await this.getNetwork();
+            return typeof logs[0] === "string"
+                ? logs
+                : logs.map((log: any) => this._wrapLog(log, network));
+        }
+
+        // This is inefficient. Status should probably be indicated in the transaction receipt.
+        async getTransactionStatus(txHash: string): Promise<TransactionStatus> {
+            const tx = await this.getTransaction(txHash);
+            if (tx == null) {
+                return TransactionStatus.NotFound;
+            }
+            if (tx.blockNumber == null) {
+                return TransactionStatus.Processing;
+            }
+            const verifiedBlock = await this.getBlock("finalized") as Block;
+            if (tx.blockNumber <= verifiedBlock.number) {
+                return TransactionStatus.Finalized;
+            }
+            return TransactionStatus.Committed;
+        }
+
+        override async broadcastTransaction(signedTx: string): Promise<TransactionResponse> {
+            const { blockNumber, hash, network } = await resolveProperties({
+                blockNumber: this.getBlockNumber(),
+                hash: this._perform({
+                    method: "broadcastTransaction",
+                    signedTransaction: signedTx,
+                }),
+                network: this.getNetwork(),
+            });
+
+            const tx = Transaction.from(signedTx);
+            if (tx.hash !== hash) {
+                throw new Error("@TODO: the returned hash did not match");
+            }
+
+            return this._wrapTransactionResponse(<any>tx, network).replaceableTransaction(
+                blockNumber,
+            );
+        }
+
+        async getL2TransactionFromPriorityOp(
+            l1TxResponse: ethers.TransactionResponse,
+        ): Promise<TransactionResponse> {
+            const receipt = await l1TxResponse.wait();
+            const l2Hash = getL2HashFromPriorityOp(receipt as ethers.TransactionReceipt, await this.getMainContractAddress());
+
+            let status = null;
+            do {
+                status = await this.getTransactionStatus(l2Hash);
+                await sleep(this.pollingInterval);
+            } while (status == TransactionStatus.NotFound);
+
+            return await this.getTransaction(l2Hash);
+        }
+
+        async getPriorityOpResponse(
+            l1TxResponse: ethers.TransactionResponse,
+        ): Promise<PriorityOpResponse> {
+            const l2Response = { ...l1TxResponse } as PriorityOpResponse;
+
+            l2Response.waitL1Commit = l2Response.wait;
+            l2Response.wait = async () => {
+                const l2Tx = await this.getL2TransactionFromPriorityOp(l1TxResponse);
+                return await l2Tx.wait();
+            };
+            l2Response.waitFinalize = async () => {
+                const l2Tx = await this.getL2TransactionFromPriorityOp(l1TxResponse);
+                return await l2Tx.waitFinalize();
+            };
+
+            return l2Response;
+        }
+
+        async getContractAccountInfo(address: Address): Promise<ContractAccountInfo> {
+            const deployerContract = new Contract(
+                CONTRACT_DEPLOYER_ADDRESS,
+                CONTRACT_DEPLOYER.fragments,
+                this,
+            );
+            const data = await deployerContract.getAccountInfo(address);
+
+            return {
+                supportedAAVersion: data.supportedAAVersion,
+                nonceOrdering: data.nonceOrdering,
+            };
+        }
+
+        // TODO (EVM-3): support refundRecipient for fee estimation
+        async estimateL1ToL2Execute(transaction: {
+            contractAddress: Address;
+            calldata: string;
+            caller?: Address;
+            l2Value?: BigNumberish;
+            factoryDeps?: ethers.BytesLike[];
+            gasPerPubdataByte?: BigNumberish;
+            overrides?: ethers.Overrides;
+        }): Promise<bigint> {
+            transaction.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
+
+            // If the `from` address is not provided, we use a random address, because
+            // due to storage slot aggregation, the gas estimation will depend on the address
+            // and so estimation for the zero address may be smaller than for the sender.
+            transaction.caller ??= ethers.Wallet.createRandom().address;
+
+            const customData = {
+                gasPerPubdata: transaction.gasPerPubdataByte,
+            };
+            if (transaction.factoryDeps) {
+                Object.assign(customData, { factoryDeps: transaction.factoryDeps });
+            }
+
+            return await this.estimateGasL1({
+                from: transaction.caller,
+                data: transaction.calldata,
+                to: transaction.contractAddress,
+                value: transaction.l2Value,
+                customData,
+            });
+        }
+
+        override getRpcTransaction(tx: TransactionRequest): JsonRpcTransactionRequest {
+            const result: any = super.getRpcTransaction(tx);
+            if (tx.customData == null) {
+                return result;
+            }
+            result.type = ethers.toBeHex(EIP712_TX_TYPE);
+            result.eip712Meta = {
+                gasPerPubdata: ethers.toBeHex(tx.customData.gasPerPubdata ?? 0),
+            } as any;
+            if (tx.customData.factoryDeps) {
+                result.eip712Meta.factoryDeps = tx.customData.factoryDeps.map(
+                    (dep: ethers.BytesLike) =>
+                        // TODO (SMA-1605): we arraify instead of hexlifying because server expects Vec<u8>.
+                        //  We should change deserialization there.
+                        Array.from(ethers.getBytes(dep)),
+                );
+            }
+            if (tx.customData.paymasterParams) {
+                // @ts-ignore
+                result.eip712Meta.paymasterParams = {
+                    paymaster: ethers.hexlify(tx.customData.paymasterParams.paymaster),
+                    paymasterInput: Array.from(
+                        ethers.getBytes(tx.customData.paymasterParams.paymasterInput),
+                    ),
+                };
+            }
+            return result;
+        }
+    };
+}
+
+export class Provider extends JsonRpcApiProvider(ethers.JsonRpcProvider) {
+    #connect: FetchRequest;
+    protected _contractAddresses: {
         mainContract?: Address;
         erc20BridgeL1?: Address;
         erc20BridgeL2?: Address;
     };
 
-    override _getBlockTag(blockTag?: BlockTag): string | Promise<string> {
-        if (blockTag == "committed") {
-            return "committed";
-        }
-        return super._getBlockTag(blockTag);
-    }
-
-    override _wrapLog(value: any, network: ethers.Network): Log {
-        const log: any = formatLog(value);
-        return new Log(super._wrapLog(log, network), this);
-    }
-
-    override _wrapBlock(value: any, network: ethers.Network): Block {
-        const block: any = formatBlock(value);
-        return new Block(super._wrapBlock(block, network), this);
-    }
-
-    override _wrapTransactionResponse(
-        value: any,
-        network: ethers.Network,
-    ): TransactionResponse {
-        const tx: any = formatTransactionResponse(value);
-        return new TransactionResponse(super._wrapTransactionResponse(tx, network), this);
-    }
-
-    override _wrapTransactionReceipt(value: any, network: ethers.Network): TransactionReceipt {
-        const receipt: any = formatTransactionReceipt(value);
-        return new TransactionReceipt(receipt, this);
-    }
-
-    override async getTransactionReceipt(txHash: string): Promise<TransactionReceipt> {
-        return (await super.getTransactionReceipt(txHash)) as TransactionReceipt;
-    }
-
-    override async getTransaction(txHash: string): Promise<TransactionResponse> {
-        return (await super.getTransaction(txHash)) as TransactionResponse;
-    }
-
-    override async getBlock(
-        blockHashOrBlockTag: BlockTag,
-        includeTxs?: boolean,
-    ): Promise<Block> {
-        return (await super.getBlock(blockHashOrBlockTag, includeTxs)) as Block;
-    }
-
-    override async getLogs(filter: Filter | FilterByBlockHash): Promise<Log[]> {
-        return (await super.getLogs(filter)) as Log[];
-    }
-
-    override async getBalance(address: Address, blockTag?: BlockTag, tokenAddress?: Address) {
-        if (tokenAddress == null || isETH(tokenAddress)) {
-            // requesting ETH balance
-            return await super.getBalance(address, blockTag);
-        } else {
-            try {
-                let token = IERC20__factory.connect(tokenAddress, this);
-                return await token.balanceOf(address, { blockTag });
-            } catch {
-                return 0n;
-            }
-        }
-    }
-
-    async l2TokenAddress(token: Address): Promise<string> {
-        if (token == ETH_ADDRESS) {
-            return ETH_ADDRESS;
-        } else {
-            const erc20BridgeAddress = (await this.getDefaultBridgeAddresses()).erc20L2;
-            const erc20Bridge = IL2Bridge__factory.connect(erc20BridgeAddress!, this);
-            return await erc20Bridge.l2TokenAddress(token);
-        }
-    }
-
-    async l1TokenAddress(token: Address): Promise<string> {
-        if (token == ETH_ADDRESS) {
-            return ETH_ADDRESS;
-        } else {
-            const erc20BridgeAddress = (await this.getDefaultBridgeAddresses()).erc20L2;
-            const erc20Bridge = IL2Bridge__factory.connect(erc20BridgeAddress!, this);
-            return await erc20Bridge.l1TokenAddress(token);
-        }
-    }
-
-    async estimateGasL1(transaction: TransactionRequest): Promise<bigint> {
-        return await this.send("zks_estimateGasL1ToL2", [this.getRpcTransaction(transaction)]);
-    }
-
-    async estimateFee(transaction: TransactionRequest): Promise<Fee> {
-        return await this.send("zks_estimateFee", [transaction]);
-    }
-
-    async getGasPrice(): Promise<bigint> {
-        const feeData = await this.getFeeData();
-        return feeData.gasPrice!;
+    override get contractAddresses(): { mainContract?: Address; erc20BridgeL1?: Address; erc20BridgeL2?: Address } {
+        return this._contractAddresses;
     }
 
     constructor(url?: ethers.FetchRequest | string, network?: Networkish, options?: any) {
+        if (url == null) { url = "http:/\/localhost:3050"; }
         super(url, network, options);
+        typeof(url) === "string" ? this.#connect = new FetchRequest(url) : this.#connect = url.clone();
         this.pollingInterval = 500;
-        this.contractAddresses = {};
+        this._contractAddresses = {};
     }
 
-    async getLogProof(txHash: BytesLike, index?: number): Promise<MessageProof | null> {
-        return await this.send("zks_getL2ToL1LogProof", [ethers.hexlify(txHash), index]);
-    }
+    override async _send(payload: JsonRpcPayload | Array<JsonRpcPayload>): Promise<Array<JsonRpcResult>> {
+        const request = this._getConnection();
+        request.body = JSON.stringify(payload);
+        request.setHeader("content-type", "application/json");
 
-    async getL1BatchBlockRange(l1BatchNumber: number): Promise<[number, number] | null> {
-        const range = await this.send("zks_getL1BatchBlockRange", [l1BatchNumber]);
-        if (range == null) {
-            return null;
-        }
-        return [parseInt(range[0], 16), parseInt(range[1], 16)];
-    }
+        const response = await request.send();
+        response.assertOk();
 
-    async getMainContractAddress(): Promise<Address> {
-        if (!this.contractAddresses.mainContract) {
-            this.contractAddresses.mainContract = await this.send("zks_getMainContract", []);
-        }
-        return this.contractAddresses.mainContract!;
-    }
+        let resp = response.bodyJson;
+        if (!Array.isArray(resp)) { resp = [ resp ]; }
 
-    async getTestnetPaymasterAddress(): Promise<Address | null> {
-        // Unlike contract's addresses, the testnet paymaster is not cached, since it can be trivially changed
-        // on the fly by the server and should not be relied on to be constant
-        return await this.send("zks_getTestnetPaymaster", []);
-    }
-
-    async getDefaultBridgeAddresses() {
-        if (!this.contractAddresses.erc20BridgeL1) {
-            let addresses = await this.send("zks_getBridgeContracts", []);
-            this.contractAddresses.erc20BridgeL1 = addresses.l1Erc20DefaultBridge;
-            this.contractAddresses.erc20BridgeL2 = addresses.l2Erc20DefaultBridge;
-        }
-        return {
-            erc20L1: this.contractAddresses.erc20BridgeL1,
-            erc20L2: this.contractAddresses.erc20BridgeL2,
-        };
-    }
-
-    async getConfirmedTokens(start: number = 0, limit: number = 255): Promise<Token[]> {
-        const tokens: Token[] = await this.send("zks_getConfirmedTokens", [start, limit]);
-        return tokens.map((token) => ({ address: token.l2Address, ...token }));
-    }
-
-    async getAllAccountBalances(address: Address): Promise<BalancesMap> {
-        let balances = await this.send("zks_getAllAccountBalances", [address]);
-        for (let token in balances) {
-            balances[token] = BigInt(balances[token]);
-        }
-        return balances;
-    }
-
-    async l1ChainId(): Promise<number> {
-        const res = await this.send("zks_L1ChainId", []);
-        return Number(res);
-    }
-
-    async getL1BatchNumber(): Promise<number> {
-        const number = await this.send("zks_L1BatchNumber", []);
-        return Number(number);
-    }
-
-    async getL1BatchDetails(number: number): Promise<BatchDetails> {
-        return await this.send("zks_getL1BatchDetails", [number]);
-    }
-
-    async getBlockDetails(number: number): Promise<BlockDetails> {
-        return await this.send("zks_getBlockDetails", [number]);
-    }
-
-    async getTransactionDetails(txHash: BytesLike): Promise<TransactionDetails> {
-        return await this.send("zks_getTransactionDetails", [txHash]);
-    }
-
-    async getWithdrawTx(transaction: {
-        token: Address;
-        amount: BigNumberish;
-        from?: Address;
-        to?: Address;
-        bridgeAddress?: Address;
-        overrides?: ethers.Overrides;
-    }): Promise<EthersTransactionRequest> {
-        const { ...tx } = transaction;
-
-        if (tx.to == null && tx.from == null) {
-            throw new Error("withdrawal target address is undefined");
-        }
-
-        tx.to ??= tx.from;
-        tx.overrides ??= {};
-        tx.overrides.from ??= tx.from;
-
-        if (isETH(tx.token)) {
-            if (!tx.overrides.value) {
-                tx.overrides.value = tx.amount;
-            }
-            const passedValue = BigInt(tx.overrides.value);
-
-            if (passedValue != BigInt(tx.amount)) {
-                // To avoid users shooting themselves into the foot, we will always use the amount to withdraw
-                // as the value
-
-                throw new Error("The tx.value is not equal to the value withdrawn");
-            }
-
-            const ethL2Token = IEthToken__factory.connect(L2_ETH_TOKEN_ADDRESS, this);
-            return ethL2Token.withdraw.populateTransaction(tx.to, tx.overrides);
-        }
-
-        if (tx.bridgeAddress == null) {
-            const bridges = await this.getDefaultBridgeAddresses();
-            tx.bridgeAddress = bridges.erc20L2;
-        }
-
-        const bridge = IL2Bridge__factory.connect(tx.bridgeAddress!, this);
-        return bridge.withdraw.populateTransaction(tx.to, tx.token, tx.amount, tx.overrides);
-    }
-
-    async estimateGasWithdraw(transaction: {
-        token: Address;
-        amount: BigNumberish;
-        from?: Address;
-        to?: Address;
-        bridgeAddress?: Address;
-        overrides?: ethers.Overrides;
-    }): Promise<bigint> {
-        const withdrawTx = await this.getWithdrawTx(transaction);
-        return await this.estimateGas(withdrawTx);
-    }
-
-    async getTransferTx(transaction: {
-        to: Address;
-        amount: BigNumberish;
-        from?: Address;
-        token?: Address;
-        overrides?: ethers.Overrides;
-    }): Promise<EthersTransactionRequest> {
-        const { ...tx } = transaction;
-        tx.overrides ??= {};
-        tx.overrides.from ??= tx.from;
-
-        if (tx.token == null || tx.token == ETH_ADDRESS) {
-            return {
-                ...tx.overrides,
-                to: tx.to,
-                value: tx.amount,
-            };
-        } else {
-            const token = IERC20__factory.connect(tx.token, this);
-            return await token.transfer.populateTransaction(tx.to, tx.amount, tx.overrides);
-        }
-    }
-
-    async estimateGasTransfer(transaction: {
-        to: Address;
-        amount: BigNumberish;
-        from?: Address;
-        token?: Address;
-        overrides?: ethers.Overrides;
-    }): Promise<bigint> {
-        const transferTx = await this.getTransferTx(transaction);
-        return await this.estimateGas(transferTx);
+        return resp;
     }
 
     static getDefaultProvider(zksyncNetwork: ZkSyncNetwork = ZkSyncNetwork.Localhost) {
@@ -340,180 +553,13 @@ export class Provider extends ethers.JsonRpcProvider {
                 return new Provider("https://zksync2-mainnet.zksync.io/");
         }
     }
-
-    async newFilter(filter: FilterByBlockHash | Filter): Promise<bigint> {
-        const id = await this.send("eth_newFilter", [await this._getFilter(filter)]);
-        return BigInt(id);
-    }
-
-    async newBlockFilter(): Promise<bigint> {
-        const id = await this.send("eth_newBlockFilter", []);
-        return BigInt(id);
-    }
-
-    async newPendingTransactionsFilter(): Promise<bigint> {
-        const id = await this.send("eth_newPendingTransactionFilter", []);
-        return BigInt(id);
-    }
-
-    async getFilterChanges(idx: bigint): Promise<Array<Log | string>> {
-        const logs = await this.send("eth_getFilterChanges", [ethers.toBeHex(idx)]);
-        const network = await this.getNetwork();
-        return typeof logs[0] === "string"
-            ? logs
-            : logs.map((log: any) => this._wrapLog(log, network));
-    }
-
-    // This is inefficient. Status should probably be indicated in the transaction receipt.
-    async getTransactionStatus(txHash: string): Promise<TransactionStatus> {
-        const tx = await this.getTransaction(txHash);
-        if (tx == null) {
-            return TransactionStatus.NotFound;
-        }
-        if (tx.blockNumber == null) {
-            return TransactionStatus.Processing;
-        }
-        const verifiedBlock = await this.getBlock("finalized");
-        if (tx.blockNumber <= verifiedBlock.number) {
-            return TransactionStatus.Finalized;
-        }
-        return TransactionStatus.Committed;
-    }
-
-    override async broadcastTransaction(signedTx: string): Promise<TransactionResponse> {
-        const { blockNumber, hash, network } = await resolveProperties({
-            blockNumber: this.getBlockNumber(),
-            hash: this._perform({
-                method: "broadcastTransaction",
-                signedTransaction: signedTx,
-            }),
-            network: this.getNetwork(),
-        });
-
-        const tx = Transaction.from(signedTx);
-        if (tx.hash !== hash) {
-            throw new Error("@TODO: the returned hash did not match");
-        }
-
-        return this._wrapTransactionResponse(<any>tx, network).replaceableTransaction(
-            blockNumber,
-        );
-    }
-
-    async getL2TransactionFromPriorityOp(
-        l1TxResponse: ethers.TransactionResponse,
-    ): Promise<TransactionResponse> {
-        const receipt = await l1TxResponse.wait();
-        const l2Hash = getL2HashFromPriorityOp(receipt, await this.getMainContractAddress());
-
-        let status = null;
-        do {
-            status = await this.getTransactionStatus(l2Hash);
-            await sleep(this.pollingInterval);
-        } while (status == TransactionStatus.NotFound);
-
-        return await this.getTransaction(l2Hash);
-    }
-
-    async getPriorityOpResponse(
-        l1TxResponse: ethers.TransactionResponse,
-    ): Promise<PriorityOpResponse> {
-        const l2Response = { ...l1TxResponse } as PriorityOpResponse;
-
-        l2Response.waitL1Commit = l2Response.wait;
-        l2Response.wait = async () => {
-            const l2Tx = await this.getL2TransactionFromPriorityOp(l1TxResponse);
-            return await l2Tx.wait();
-        };
-        l2Response.waitFinalize = async () => {
-            const l2Tx = await this.getL2TransactionFromPriorityOp(l1TxResponse);
-            return await l2Tx.waitFinalize();
-        };
-
-        return l2Response;
-    }
-
-    async getContractAccountInfo(address: Address): Promise<ContractAccountInfo> {
-        const deployerContract = new Contract(
-            CONTRACT_DEPLOYER_ADDRESS,
-            CONTRACT_DEPLOYER.fragments,
-            this,
-        );
-        const data = await deployerContract.getAccountInfo(address);
-
-        return {
-            supportedAAVersion: data.supportedAAVersion,
-            nonceOrdering: data.nonceOrdering,
-        };
-    }
-
-    // TODO (EVM-3): support refundRecipient for fee estimation
-    async estimateL1ToL2Execute(transaction: {
-        contractAddress: Address;
-        calldata: string;
-        caller?: Address;
-        l2Value?: BigNumberish;
-        factoryDeps?: ethers.BytesLike[];
-        gasPerPubdataByte?: BigNumberish;
-        overrides?: ethers.Overrides;
-    }): Promise<bigint> {
-        transaction.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
-
-        // If the `from` address is not provided, we use a random address, because
-        // due to storage slot aggregation, the gas estimation will depend on the address
-        // and so estimation for the zero address may be smaller than for the sender.
-        transaction.caller ??= ethers.Wallet.createRandom().address;
-
-        const customData = {
-            gasPerPubdata: transaction.gasPerPubdataByte,
-        };
-        if (transaction.factoryDeps) {
-            Object.assign(customData, { factoryDeps: transaction.factoryDeps });
-        }
-
-        return await this.estimateGasL1({
-            from: transaction.caller,
-            data: transaction.calldata,
-            to: transaction.contractAddress,
-            value: transaction.l2Value,
-            customData,
-        });
-    }
-
-    override getRpcTransaction(tx: TransactionRequest): JsonRpcTransactionRequest {
-        const result: any = super.getRpcTransaction(tx);
-        if (tx.customData == null) {
-            return result;
-        }
-        result.eip712Meta = {
-            gasPerPubdata: ethers.toBeHex(tx.customData.gasPerPubdata ?? 0),
-        } as any;
-        if (tx.customData.factoryDeps) {
-            result.eip712Meta.factoryDeps = tx.customData.factoryDeps.map(
-                (dep: ethers.BytesLike) =>
-                    // TODO (SMA-1605): we arraify instead of hexlifying because server expects Vec<u8>.
-                    //  We should change deserialization there.
-                    Array.from(ethers.getBytes(dep)),
-            );
-        }
-        if (tx.customData.paymasterParams) {
-            // @ts-ignore
-            result.eip712Meta.paymasterParams = {
-                paymaster: ethers.hexlify(tx.customData.paymasterParams.paymaster),
-                paymasterInput: Array.from(
-                    ethers.getBytes(tx.customData.paymasterParams.paymasterInput),
-                ),
-            };
-        }
-        return result;
-    }
 }
 
-export class BrowserProvider extends Provider {
+export class BrowserProvider extends JsonRpcApiProvider(ethers.BrowserProvider) {
     #request: (method: string, params: Array<any> | Record<string, any>) => Promise<any>;
 
     constructor(ethereum: Eip1193Provider, network?: Networkish) {
-        super(null, network, { batchMaxCount: 1 });
+        super(ethereum, network);
 
         this.#request = async (method: string, params: Array<any> | Record<string, any>) => {
             const payload = { method, params };
@@ -533,10 +579,8 @@ export class BrowserProvider extends Provider {
         };
     }
 
-    // @ts-ignore
-    override async _send(
-        payload: JsonRpcPayload | Array<JsonRpcPayload>,
-    ): Promise<Array<JsonRpcResult | JsonRpcError>> {
+
+    override async _send(payload: JsonRpcPayload | Array<JsonRpcPayload>): Promise<Array<JsonRpcResult | JsonRpcError>> {
         ethers.assertArgument(
             !Array.isArray(payload),
             "EIP-1193 does not support batch request",
@@ -573,7 +617,7 @@ export class BrowserProvider extends Provider {
         return super.getRpcError(payload, error);
     }
 
-    async hasSigner(address: number | string): Promise<boolean> {
+    override async hasSigner(address: number | string): Promise<boolean> {
         if (address == null) {
             address = 0;
         }

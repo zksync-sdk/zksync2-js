@@ -3,7 +3,6 @@ import { Provider } from "./provider";
 import { EIP712_TX_TYPE, serializeEip712 } from "./utils";
 import { ethers, ProgressCallback } from "ethers";
 import {
-    Transaction,
     TransactionLike,
     TransactionRequest,
     TransactionResponse,
@@ -11,8 +10,10 @@ import {
 import { AdapterL1, AdapterL2 } from "./adapters";
 
 export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
+    // @ts-ignore
     override readonly provider: Provider;
     providerL1?: ethers.Provider;
+    // @ts-ignore
     public eip712: EIP712Signer;
 
     override _providerL1() {
@@ -48,7 +49,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
 
     static fromMnemonic(mnemonic: string, provider?: ethers.Provider): Wallet {
         const wallet = super.fromPhrase(mnemonic, provider);
-        return new Wallet(wallet.signingKey, null, wallet.provider);
+        return new Wallet(wallet.signingKey, undefined, wallet.provider as ethers.Provider);
     }
 
     static override async fromEncryptedJson(
@@ -74,6 +75,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         providerL1?: ethers.Provider,
     ) {
         super(privateKey, providerL2);
+        // @ts-ignore
         if (this.provider != null) {
             const network = this.provider.getNetwork();
             // @ts-ignore
@@ -101,7 +103,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         populated.type = EIP712_TX_TYPE;
         populated.value ??= 0;
         populated.data ??= "0x";
-        populated.customData = this._fillCustomData(transaction.customData);
+        populated.customData = this._fillCustomData(transaction.customData ?? {});
         populated.gasPrice = await this.provider.getGasPrice();
         return populated;
     }
@@ -118,6 +120,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
             if (from.toLowerCase() != this.address.toLowerCase()) {
                 throw new Error("Transaction `from` address mismatch");
             }
+            transaction.customData??= {};
             transaction.customData.customSignature = await this.eip712.sign(transaction);
             const populated = await this.populateTransaction(transaction);
 

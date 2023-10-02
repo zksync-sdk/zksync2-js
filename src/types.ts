@@ -3,7 +3,7 @@ import {
     BigNumberish,
     BytesLike,
     ethers,
-    Signature as EthersSignature,
+    Signature as EthersSignature, SignatureLike,
     TransactionRequest as EthersTransactionRequest,
 } from "ethers";
 import { EIP712_TX_TYPE, parseEip712, serializeEip712, sleep, eip712TxHash } from "./utils";
@@ -101,6 +101,7 @@ export class TransactionResponse extends ethers.TransactionResponse {
             if (receipt.blockNumber) {
                 return receipt;
             }
+            await sleep(500);
         }
     }
 
@@ -158,7 +159,7 @@ export class TransactionReceipt extends ethers.TransactionReceipt {
         this.l1BatchTxIndex = params.l1BatchTxIndex;
         this.l2ToL1Logs = params.l2ToL1Logs;
         this._logs = Object.freeze(
-            params.logs.map((log) => {
+            params.logs.map((log: Log) => {
                 return new Log(log, provider);
             }),
         );
@@ -215,10 +216,14 @@ export class Block extends ethers.Block {
     }
 }
 
+export interface LogParams extends ethers.LogParams {
+    readonly l1BatchNumber: null | number;
+}
+
 export class Log extends ethers.Log {
     readonly l1BatchNumber: null | number;
 
-    constructor(params: any, provider: ethers.Provider) {
+    constructor(params: LogParams, provider: ethers.Provider) {
         super(params, provider);
         this.l1BatchNumber = params.l1BatchNumber;
     }
@@ -249,11 +254,11 @@ export interface TransactionLike extends ethers.TransactionLike {
 }
 
 export class Transaction extends ethers.Transaction {
-    customData: null | Eip712Meta;
+    customData?: null | Eip712Meta;
     // super.#type is private and there is no way to override which enforced to
     // introduce following variable
-    #type: number | null;
-    #from: string | null;
+    #type?: null | number;
+    #from?: null | string;
 
     override get type(): number | null {
         return this.#type == EIP712_TX_TYPE ? this.#type : super.type;
@@ -283,7 +288,7 @@ export class Transaction extends ethers.Transaction {
             if (tx.type === EIP712_TX_TYPE) {
                 result.type = EIP712_TX_TYPE;
                 result.customData = tx.customData;
-                result.from = tx.from;
+                result.from = tx.from as string;
             }
             if (tx.type != null) result.type = tx.type;
             if (tx.to != null) result.to = tx.to;
@@ -332,7 +337,7 @@ export class Transaction extends ethers.Transaction {
         if (this.customData == null && this.#type != EIP712_TX_TYPE) {
             return super.serialized;
         }
-        return serializeEip712(this, this.signature);
+        return serializeEip712(this, this.signature as SignatureLike);
     }
 
     override get unsignedSerialized(): string {
@@ -351,7 +356,7 @@ export class Transaction extends ethers.Transaction {
         };
     }
 
-    override get typeName(): string {
+    override get typeName(): string | null {
         return this.#type === EIP712_TX_TYPE ? "zksync" : super.typeName;
     }
 
@@ -375,7 +380,7 @@ export class Transaction extends ethers.Transaction {
     }
 
     override get from(): string | null {
-        return this.#type === EIP712_TX_TYPE ? this.#from : super.from;
+        return this.#type === EIP712_TX_TYPE ? this.#from as string : super.from;
     }
     override set from(value: string | null) {
         this.#from = value;
@@ -397,7 +402,7 @@ export interface L2ToL1Log {
 }
 
 export interface TransactionRequest extends EthersTransactionRequest {
-    customData?: Eip712Meta;
+    customData?: null | Eip712Meta;
 }
 
 export interface PriorityOpResponse extends TransactionResponse {

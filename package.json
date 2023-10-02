@@ -1,6 +1,6 @@
 {
     "name": "zksync2-js",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "main": "build/src/index.js",
     "types": "build/src/index.d.ts",
     "description": "A Web3 library for interacting with the ZkSync Layer 2 scaling solution.",
@@ -45,7 +45,7 @@
     },
     "scripts": {
         "test": "mocha -r ts-node/register --bail tests/setup.test.ts tests/unit/*.test.ts tests/integration/*.test.ts",
-        "build": "yarn types && tsc && ncp ./abi ./build/abi",
+        "build": "yarn types && tsc --strict true && ncp ./abi ./build/abi",
         "lint": "prettier . --write",
         "lint:check": "prettier . --check",
         "watch": "tsc --watch",
