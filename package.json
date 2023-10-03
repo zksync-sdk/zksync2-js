@@ -49,6 +49,7 @@
         "test": "mocha -r ts-node/register --bail tests/setup.test.ts tests/unit/*.test.ts tests/integration/*.test.ts",
         "build": "tsc && cp -f typechain/*.d.ts build/typechain && ncp ./abi ./build/abi",
         "lint": "prettier . --write",
+        "lint:check": "prettier . --check",
         "watch": "tsc --watch",
         "types": "find ./abi -name \"*.json\" -print0 | xargs -0 -I {} npx typechain --target ethers-v5 --outDir typechain {}"
     },
