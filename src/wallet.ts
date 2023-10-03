@@ -1,10 +1,10 @@
-import { EIP712Signer } from './signer';
-import { Provider } from './provider';
-import { serialize, EIP712_TX_TYPE } from './utils';
-import { ethers, utils } from 'ethers';
-import { BlockTag, TransactionResponse, TransactionRequest } from './types';
-import { ProgressCallback } from '@ethersproject/json-wallets';
-import { AdapterL1, AdapterL2 } from './adapters';
+import { EIP712Signer } from "./signer";
+import { Provider } from "./provider";
+import { serialize, EIP712_TX_TYPE } from "./utils";
+import { ethers, utils } from "ethers";
+import { BlockTag, TransactionResponse, TransactionRequest } from "./types";
+import { ProgressCallback } from "@ethersproject/json-wallets";
+import { AdapterL1, AdapterL2 } from "./adapters";
 
 export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
     override readonly provider: Provider;
@@ -13,7 +13,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
 
     override _providerL1() {
         if (this.providerL1 == null) {
-            throw new Error('L1 provider missing: use `connectToL1` to specify');
+            throw new Error("L1 provider missing: use `connectToL1` to specify");
         }
         return this.providerL1;
     }
@@ -55,7 +55,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
     static override async fromEncryptedJson(
         json: string,
         password?: string | ethers.Bytes,
-        callback?: ProgressCallback
+        callback?: ProgressCallback,
     ) {
         const wallet = await super.fromEncryptedJson(json, password, callback);
         return new Wallet(wallet._signingKey());
@@ -74,7 +74,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
     constructor(
         privateKey: ethers.BytesLike | utils.SigningKey,
         providerL2?: Provider,
-        providerL1?: ethers.providers.Provider
+        providerL1?: ethers.providers.Provider,
     ) {
         super(privateKey, providerL2);
         if (this.provider != null) {
@@ -85,7 +85,9 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         this.providerL1 = providerL1;
     }
 
-    override async populateTransaction(transaction: TransactionRequest): Promise<TransactionRequest> {
+    override async populateTransaction(
+        transaction: TransactionRequest,
+    ): Promise<TransactionRequest> {
         if (transaction.type == null && transaction.customData == null) {
             // use legacy txs by default
             transaction.type = 0;
@@ -97,7 +99,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
 
         transaction.type = EIP712_TX_TYPE;
         transaction.value ??= 0;
-        transaction.data ??= '0x';
+        transaction.data ??= "0x";
         transaction.customData = this._fillCustomData(transaction.customData);
         transaction.gasPrice = await this.provider.getGasPrice();
         return transaction;
@@ -112,7 +114,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         } else {
             transaction.from ??= this.address;
             if (transaction.from.toLowerCase() != this.address.toLowerCase()) {
-                throw new Error('Transaction `from` address mismatch');
+                throw new Error("Transaction `from` address mismatch");
             }
             transaction.customData.customSignature = await this.eip712.sign(transaction);
 
@@ -120,7 +122,9 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         }
     }
 
-    override async sendTransaction(transaction: ethers.providers.TransactionRequest): Promise<TransactionResponse> {
+    override async sendTransaction(
+        transaction: ethers.providers.TransactionRequest,
+    ): Promise<TransactionResponse> {
         // Typescript isn't smart enough to recognise that wallet.sendTransaction
         // calls provider.sendTransaction which returns our extended type and not ethers' one.
         return (await super.sendTransaction(transaction)) as TransactionResponse;

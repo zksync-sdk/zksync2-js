@@ -1,16 +1,16 @@
-import { Wallet } from './wallet';
-import { Signer } from './signer';
-import { BytesLike, Contract, ContractInterface, ethers, utils } from 'ethers';
+import { Wallet } from "./wallet";
+import { Signer } from "./signer";
+import { BytesLike, Contract, ContractInterface, ethers, utils } from "ethers";
 import {
     hashBytecode,
     CONTRACT_DEPLOYER,
     CONTRACT_DEPLOYER_ADDRESS,
     EIP712_TX_TYPE,
     getDeployedContracts,
-    DEFAULT_GAS_PER_PUBDATA_LIMIT
-} from './utils';
-import { AccountAbstractionVersion, DeploymentType } from './types';
-export { Contract } from 'ethers';
+    DEFAULT_GAS_PER_PUBDATA_LIMIT,
+} from "./utils";
+import { AccountAbstractionVersion, DeploymentType } from "./types";
+export { Contract } from "ethers";
 
 export class ContractFactory extends ethers.ContractFactory {
     override readonly signer: Wallet | Signer;
@@ -20,21 +20,29 @@ export class ContractFactory extends ethers.ContractFactory {
         abi: ContractInterface,
         bytecode: ethers.BytesLike,
         signer: Wallet | Signer,
-        deploymentType?: DeploymentType
+        deploymentType?: DeploymentType,
     ) {
         super(abi, bytecode, signer);
-        this.deploymentType = deploymentType || 'create';
+        this.deploymentType = deploymentType || "create";
     }
 
-    private encodeCalldata(salt: BytesLike, bytecodeHash: BytesLike, constructorCalldata: BytesLike) {
-        if (this.deploymentType == 'create') {
-            return CONTRACT_DEPLOYER.encodeFunctionData('create', [salt, bytecodeHash, constructorCalldata]);
-        } else if (this.deploymentType == 'createAccount') {
-            return CONTRACT_DEPLOYER.encodeFunctionData('createAccount', [
+    private encodeCalldata(
+        salt: BytesLike,
+        bytecodeHash: BytesLike,
+        constructorCalldata: BytesLike,
+    ) {
+        if (this.deploymentType == "create") {
+            return CONTRACT_DEPLOYER.encodeFunctionData("create", [
                 salt,
                 bytecodeHash,
                 constructorCalldata,
-                AccountAbstractionVersion.Version1
+            ]);
+        } else if (this.deploymentType == "createAccount") {
+            return CONTRACT_DEPLOYER.encodeFunctionData("createAccount", [
+                salt,
+                bytecodeHash,
+                constructorCalldata,
+                AccountAbstractionVersion.Version1,
             ]);
         } else {
             throw new Error(`Unsupported deployment type ${this.deploymentType}`);
@@ -43,7 +51,7 @@ export class ContractFactory extends ethers.ContractFactory {
 
     override getDeployTransaction(...args: any[]): ethers.providers.TransactionRequest {
         // TODO (SMA-1585): Users should be able to provide the salt.
-        let salt = '0x0000000000000000000000000000000000000000000000000000000000000000';
+        let salt = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
         // The overrides will be popped out in this call:
         const txRequest = super.getDeployTransaction(...args);
@@ -77,14 +85,20 @@ export class ContractFactory extends ethers.ContractFactory {
 
         const deployTxReceipt = await contract.deployTransaction.wait();
 
-        const deployedAddresses = getDeployedContracts(deployTxReceipt).map((info) => info.deployedAddress);
+        const deployedAddresses = getDeployedContracts(deployTxReceipt).map(
+            (info) => info.deployedAddress,
+        );
 
         const contractWithCorrectAddress = new ethers.Contract(
             deployedAddresses[deployedAddresses.length - 1],
             contract.interface,
-            contract.signer
+            contract.signer,
         );
-        utils.defineReadOnly(contractWithCorrectAddress, 'deployTransaction', contract.deployTransaction);
+        utils.defineReadOnly(
+            contractWithCorrectAddress,
+            "deployTransaction",
+            contract.deployTransaction,
+        );
         return contractWithCorrectAddress;
     }
 }

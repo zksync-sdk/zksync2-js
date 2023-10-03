@@ -1,9 +1,8 @@
-import {expect} from 'chai';
-import {Provider, types, utils, Wallet} from "../../src";
-import {BigNumber, ethers} from "ethers";
+import { expect } from "chai";
+import { Provider, types, utils, Wallet } from "../../src";
+import { BigNumber, ethers } from "ethers";
 
-
-describe('Provider', () => {
+describe("Provider", () => {
     const ADDRESS = "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049";
     const PRIVATE_KEY = "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
     const RECEIVER = "0xa61464658AfeAf65CccaaFD3a512b69A83B77618";
@@ -13,7 +12,7 @@ describe('Provider', () => {
 
     let tx = null;
 
-    before('setup', async function () {
+    before("setup", async function () {
         this.timeout(25_000);
         tx = await wallet.transfer({
             token: utils.ETH_ADDRESS,
@@ -23,293 +22,295 @@ describe('Provider', () => {
         await tx.wait();
     });
 
-
-    describe('#getMainContractAddress()', () => {
-        it('should return the address of main contract', async () => {
+    describe("#getMainContractAddress()", () => {
+        it("should return the address of main contract", async () => {
             const result = await provider.getMainContractAddress();
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getTestnetPaymasterAddress()', () => {
-        it('should return the address of testnet paymaster', async () => {
+    describe("#getTestnetPaymasterAddress()", () => {
+        it("should return the address of testnet paymaster", async () => {
             const TESTNET_PAYMASTER = "0x0f9acdb01827403765458b4685de6d9007580d15";
             const result = await provider.getTestnetPaymasterAddress();
             expect(result).to.be.equal(TESTNET_PAYMASTER);
         });
     });
 
-    describe('#l1ChainId()', () => {
-        it('should return L1 chain ID', async () => {
+    describe("#l1ChainId()", () => {
+        it("should return L1 chain ID", async () => {
             const L1_CHAIN_ID = 9;
             const result = await provider.l1ChainId();
             expect(result).to.be.equal(L1_CHAIN_ID);
         });
     });
 
-    describe('getBlockNumber()', () => {
-        it('should return block number', async () => {
+    describe("getBlockNumber()", () => {
+        it("should return block number", async () => {
             const result = await provider.getBlockNumber();
             expect(result).to.be.greaterThan(0);
         });
     });
 
-    describe('#getTokenPrice()', () => {
-        it('should return `token` price', async () => {
+    describe("#getTokenPrice()", () => {
+        it("should return `token` price", async () => {
             const TOKEN_PRICE = "1500.00";
             const result = await provider.getTokenPrice(utils.ETH_ADDRESS);
             expect(result).to.be.equal(TOKEN_PRICE);
         });
     });
 
-    describe('#getGasPrice()', () => {
-        it('should return gas price', async () => {
+    describe("#getGasPrice()", () => {
+        it("should return gas price", async () => {
             const GAS_PRICE = BigNumber.from(2_500_000_00);
             const result = await provider.getGasPrice();
             expect(result.eq(GAS_PRICE)).to.be.true;
         });
     });
 
-    describe('#getL1BatchNumber()', () => {
-        it('should return L1 batch number', async () => {
+    describe("#getL1BatchNumber()", () => {
+        it("should return L1 batch number", async () => {
             const result = await provider.getL1BatchNumber();
             expect(result).to.be.greaterThan(0);
         });
     });
 
-    describe('#getBalance()', () => {
-        it('should return balance of the account at `address`', async () => {
+    describe("#getBalance()", () => {
+        it("should return balance of the account at `address`", async () => {
             const result = await provider.getBalance(ADDRESS);
             expect(result.gte(BigNumber.from(0))).to.be.true;
         });
     });
 
-    describe('#getAllAccountBalances()', () => {
-        it('should return all balances of the account at `address`', async () => {
+    describe("#getAllAccountBalances()", () => {
+        it("should return all balances of the account at `address`", async () => {
             const result = await provider.getAllAccountBalances(ADDRESS);
             expect(Object.keys(result)).to.have.lengthOf(2); // ETH and DAI
         });
     });
 
-    describe('#getBlockDetails()', () => {
-        it('should return block details', async () => {
+    describe("#getBlockDetails()", () => {
+        it("should return block details", async () => {
             const result = await provider.getBlockDetails(1);
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getTransactionDetails()', () => {
-        it('should return transaction details', async () => {
+    describe("#getTransactionDetails()", () => {
+        it("should return transaction details", async () => {
             const result = await provider.getTransactionDetails(tx.hash);
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getTransactionStatus()', () => {
-        it('should return transaction status', async () => {
+    describe("#getTransactionStatus()", () => {
+        it("should return transaction status", async () => {
             const result = await provider.getTransactionStatus(tx.hash);
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getTransaction()', () => {
-        it('should return transaction', async () => {
+    describe("#getTransaction()", () => {
+        it("should return transaction", async () => {
             const result = await provider.getTransaction(tx.hash);
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getTransactionReceipt()', () => {
-        it('should return transaction receipt', async () => {
+    describe("#getTransactionReceipt()", () => {
+        it("should return transaction receipt", async () => {
             const result = await provider.getTransaction(tx.hash);
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getConfirmedTokens()', () => {
-        it('should return confirmed tokens', async () => {
+    describe("#getConfirmedTokens()", () => {
+        it("should return confirmed tokens", async () => {
             const result = await provider.getConfirmedTokens();
             expect(result).to.have.lengthOf(2);
         });
     });
 
-    describe('#getDefaultBridgeAddresses()', () => {
-        it('should return default bridges', async () => {
+    describe("#getDefaultBridgeAddresses()", () => {
+        it("should return default bridges", async () => {
             const result = await provider.getDefaultBridgeAddresses();
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#newBlockFilter()', () => {
-        it('should return new block filter', async () => {
+    describe("#newBlockFilter()", () => {
+        it("should return new block filter", async () => {
             const result = await provider.newBlockFilter();
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#newPendingTransactionsFilter()', () => {
-        it('should return new pending block filter', async () => {
+    describe("#newPendingTransactionsFilter()", () => {
+        it("should return new pending block filter", async () => {
             const result = await provider.newPendingTransactionsFilter();
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#newFilter()', () => {
-        it('should return new filter', async () => {
+    describe("#newFilter()", () => {
+        it("should return new filter", async () => {
             const result = await provider.newFilter({
-                fromBlock: 0, toBlock: 5, address: utils.L2_ETH_TOKEN_ADDRESS
+                fromBlock: 0,
+                toBlock: 5,
+                address: utils.L2_ETH_TOKEN_ADDRESS,
             });
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getContractAccountInfo()', () => {
-        it('should return contract account info', async () => {
+    describe("#getContractAccountInfo()", () => {
+        it("should return contract account info", async () => {
             const TESTNET_PAYMASTER = "0x0f9acdb01827403765458b4685de6d9007580d15";
             const result = await provider.getContractAccountInfo(TESTNET_PAYMASTER);
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#l2TokenAddress()', () => {
-        it('should return L2 token address', async () => {
+    describe("#l2TokenAddress()", () => {
+        it("should return L2 token address", async () => {
             const result = await provider.l2TokenAddress(utils.ETH_ADDRESS);
             expect(result).to.be.equal(utils.ETH_ADDRESS);
         });
     });
 
-    describe('#l1TokenAddress()', () => {
-        it('should return L1 token address', async () => {
+    describe("#l1TokenAddress()", () => {
+        it("should return L1 token address", async () => {
             const result = await provider.l1TokenAddress(utils.ETH_ADDRESS);
             expect(result).to.be.equal(utils.ETH_ADDRESS);
         });
     });
 
-    describe('#getBlock()', () => {
-        it('should return block with transactions', async () => {
+    describe("#getBlock()", () => {
+        it("should return block with transactions", async () => {
             const result = await provider.getBlock("latest");
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getBlockWithTransactions()', () => {
-        it('should return block with transactions', async () => {
+    describe("#getBlockWithTransactions()", () => {
+        it("should return block with transactions", async () => {
             const result = await provider.getBlockWithTransactions("latest");
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getBlockDetails()', () => {
-        it('should return block with transactions', async () => {
+    describe("#getBlockDetails()", () => {
+        it("should return block with transactions", async () => {
             const result = await provider.getBlockDetails(await provider.getBlockNumber());
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getL1BatchBlockRange()', () => {
-        it('should return L1 batch block range', async () => {
+    describe("#getL1BatchBlockRange()", () => {
+        it("should return L1 batch block range", async () => {
             const l1BatchNumber = await provider.getL1BatchNumber();
             const result = await provider.getL1BatchBlockRange(l1BatchNumber);
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getL1BatchDetails()', () => {
-        it('should return L1 batch details', async () => {
+    describe("#getL1BatchDetails()", () => {
+        it("should return L1 batch details", async () => {
             const l1BatchNumber = await provider.getL1BatchNumber();
             const result = await provider.getL1BatchDetails(l1BatchNumber);
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getLogs()', () => {
-        it('should return logs', async () => {
+    describe("#getLogs()", () => {
+        it("should return logs", async () => {
             const result = await provider.getLogs({
-                fromBlock: 0, toBlock: 5, address: utils.L2_ETH_TOKEN_ADDRESS
+                fromBlock: 0,
+                toBlock: 5,
+                address: utils.L2_ETH_TOKEN_ADDRESS,
             });
             expect(result).not.to.be.null;
         });
     });
 
-    describe('#getWithdrawTx()', () => {
-        it('return withdraw transaction', async () => {
+    describe("#getWithdrawTx()", () => {
+        it("return withdraw transaction", async () => {
             const WITHDRAW_TX = {
-                "from": "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049",
-                "value": BigNumber.from(7_000_000_000),
-                "to": "0x000000000000000000000000000000000000800A",
-                "data": "0x51cff8d900000000000000000000000036615cf349d7f6344891b1e7ca7c72883f5dc049"
+                from: "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049",
+                value: BigNumber.from(7_000_000_000),
+                to: "0x000000000000000000000000000000000000800A",
+                data: "0x51cff8d900000000000000000000000036615cf349d7f6344891b1e7ca7c72883f5dc049",
             };
             const result = await provider.getWithdrawTx({
                 token: utils.ETH_ADDRESS,
                 amount: 7_000_000_000,
                 to: ADDRESS,
-                from: ADDRESS
+                from: ADDRESS,
             });
             expect(result).to.be.deep.equal(WITHDRAW_TX);
         });
     });
 
-    describe('#getTransferTx()', () => {
-        it('should return transfer transaction', async () => {
+    describe("#getTransferTx()", () => {
+        it("should return transfer transaction", async () => {
             const TRANSFER_TX = {
-                "from": "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049",
-                "to": RECEIVER,
-                "value": 7_000_000_000
+                from: "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049",
+                to: RECEIVER,
+                value: 7_000_000_000,
             };
             const result = await provider.getTransferTx({
                 token: utils.ETH_ADDRESS,
                 amount: 7_000_000_000,
                 to: RECEIVER,
-                from: ADDRESS
+                from: ADDRESS,
             });
             expect(result).to.be.deep.equal(TRANSFER_TX);
         });
     });
 
-    describe('#estimateGasWithdraw()', () => {
-        it('should return gas estimation of withdraw transaction', async () => {
+    describe("#estimateGasWithdraw()", () => {
+        it("should return gas estimation of withdraw transaction", async () => {
             const result = await provider.estimateGasWithdraw({
                 token: utils.ETH_ADDRESS,
                 amount: 7_000_000_000,
                 to: ADDRESS,
-                from: ADDRESS
+                from: ADDRESS,
             });
             expect(result.gte(BigNumber.from(0))).to.be.true;
         });
     });
 
-
-    describe('#estimateGasTransfer()', () => {
-        it('should return gas estimation of transfer transaction', async () => {
+    describe("#estimateGasTransfer()", () => {
+        it("should return gas estimation of transfer transaction", async () => {
             const result = await provider.estimateGasTransfer({
                 token: utils.ETH_ADDRESS,
                 amount: 7_000_000_000,
                 to: RECEIVER,
-                from: ADDRESS
+                from: ADDRESS,
             });
             expect(result.gte(BigNumber.from(0))).to.be.be.true;
         });
     });
 
-    describe('#estimateGasL1()', () => {
-        it('should return gas estimation of L1 transaction', async () => {
+    describe("#estimateGasL1()", () => {
+        it("should return gas estimation of L1 transaction", async () => {
             const result = await provider.estimateGasL1({
                 from: ADDRESS,
                 to: await provider.getMainContractAddress(),
                 value: 7_000_000_000,
                 customData: {
-                    gasPerPubdata: 800
-                }
+                    gasPerPubdata: 800,
+                },
             });
             expect(result.gte(BigNumber.from(0))).to.be.true;
         });
     });
 
-    describe('#estimateL1ToL2Execute()', () => {
-        it('should return gas estimation of L1 to L2 transaction', async () => {
+    describe("#estimateL1ToL2Execute()", () => {
+        it("should return gas estimation of L1 to L2 transaction", async () => {
             const result = await provider.estimateL1ToL2Execute({
                 contractAddress: await provider.getMainContractAddress(),
-                calldata: '0x',
+                calldata: "0x",
                 caller: ADDRESS,
                 l2Value: 7_000_000_000,
             });
@@ -317,11 +318,11 @@ describe('Provider', () => {
         });
     });
 
-    describe('#getFilterChanges()', () => {
-        it('should return filtered logs', async () => {
+    describe("#getFilterChanges()", () => {
+        it("should return filtered logs", async () => {
             const filter = await provider.newFilter({
                 address: utils.L2_ETH_TOKEN_ADDRESS,
-                topics: [ethers.utils.id("Transfer(address,address,uint256)")]
+                topics: [ethers.utils.id("Transfer(address,address,uint256)")],
             });
             const result = await provider.getFilterChanges(filter);
             expect(result).not.to.be.null;

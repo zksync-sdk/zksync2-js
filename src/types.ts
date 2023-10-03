@@ -1,5 +1,5 @@
-import { BytesLike, BigNumberish, providers, BigNumber } from 'ethers';
-import { BlockWithTransactions as EthersBlockWithTransactions } from '@ethersproject/abstract-provider';
+import { BytesLike, BigNumberish, providers, BigNumber } from "ethers";
+import { BlockWithTransactions as EthersBlockWithTransactions } from "@ethersproject/abstract-provider";
 
 // 0x-prefixed, hex encoded, ethereum account address
 export type Address = string;
@@ -12,25 +12,25 @@ export enum Network {
     Ropsten = 3,
     Rinkeby = 4,
     Goerli = 5,
-    Localhost = 9
+    Localhost = 9,
 }
 
 export enum PriorityQueueType {
     Deque = 0,
     HeapBuffer = 1,
-    Heap = 2
+    Heap = 2,
 }
 
 export enum PriorityOpTree {
     Full = 0,
-    Rollup = 1
+    Rollup = 1,
 }
 
 export enum TransactionStatus {
-    NotFound = 'not-found',
-    Processing = 'processing',
-    Committed = 'committed',
-    Finalized = 'finalized'
+    NotFound = "not-found",
+    Processing = "processing",
+    Committed = "committed",
+    Finalized = "finalized",
 }
 
 export type PaymasterParams = {
@@ -56,7 +56,7 @@ export type BlockTag =
     | 'pending';
 
 // TODO (SMA-1585): Support create2 variants.
-export type DeploymentType = 'create' | 'createAccount';
+export type DeploymentType = "create" | "createAccount";
 
 export interface Token {
     l1Address: Address;
@@ -142,14 +142,14 @@ export interface DeploymentInfo {
 }
 
 export interface ApprovalBasedPaymasterInput {
-    type: 'ApprovalBased';
+    type: "ApprovalBased";
     token: Address;
     minimalAllowance: BigNumber;
     innerInput: BytesLike;
 }
 
 export interface GeneralPaymasterInput {
-    type: 'General';
+    type: "General";
     innerInput: BytesLike;
 }
 
@@ -163,12 +163,12 @@ export type PaymasterInput = ApprovalBasedPaymasterInput | GeneralPaymasterInput
 
 export enum AccountAbstractionVersion {
     None = 0,
-    Version1 = 1
+    Version1 = 1,
 }
 
 export enum AccountNonceOrdering {
     Sequential = 0,
-    Arbitrary = 1
+    Arbitrary = 1,
 }
 
 export interface ContractAccountInfo {
