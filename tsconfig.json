@@ -1,18 +1,16 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2019",
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2019",
 
-    "outDir": "./build",
-    "esModuleInterop": true,
-    "declaration": true,
+        "outDir": "./build",
+        "esModuleInterop": true,
+        "declaration": true,
 
-    "preserveSymlinks": true,
-    "preserveWatchOutput": true,
+        "preserveSymlinks": true,
+        "preserveWatchOutput": true,
 
-    "noImplicitOverride": true
-  },
-  "files": [
-    "./src/index.ts"
-  ]
+        "noImplicitOverride": true
+    },
+    "files": ["./src/index.ts"]
 }

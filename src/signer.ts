@@ -1,44 +1,53 @@
-import { ethers } from 'ethers';
-import { Provider } from './provider';
-import { serialize, EIP712_TX_TYPE, hashBytecode, DEFAULT_GAS_PER_PUBDATA_LIMIT } from './utils';
-import { BlockTag, TransactionResponse, Signature, TransactionRequest } from './types';
-import { TypedDataDomain, TypedDataSigner } from '@ethersproject/abstract-signer';
-import { _TypedDataEncoder as TypedDataEncoder } from '@ethersproject/hash';
-import { AdapterL1, AdapterL2 } from './adapters';
+import { ethers } from "ethers";
+import { Provider } from "./provider";
+import {
+    DEFAULT_GAS_PER_PUBDATA_LIMIT,
+    EIP712_TX_TYPE,
+    hashBytecode,
+    serialize,
+} from "./utils";
+import { BlockTag, Signature, TransactionRequest, TransactionResponse } from "./types";
+import { TypedDataDomain, TypedDataSigner } from "@ethersproject/abstract-signer";
+import { _TypedDataEncoder as TypedDataEncoder } from "@ethersproject/hash";
+import { AdapterL1, AdapterL2 } from "./adapters";
 
 export const eip712Types = {
     Transaction: [
-        { name: 'txType', type: 'uint256' },
-        { name: 'from', type: 'uint256' },
-        { name: 'to', type: 'uint256' },
-        { name: 'gasLimit', type: 'uint256' },
-        { name: 'gasPerPubdataByteLimit', type: 'uint256' },
-        { name: 'maxFeePerGas', type: 'uint256' },
-        { name: 'maxPriorityFeePerGas', type: 'uint256' },
-        { name: 'paymaster', type: 'uint256' },
-        { name: 'nonce', type: 'uint256' },
-        { name: 'value', type: 'uint256' },
-        { name: 'data', type: 'bytes' },
-        { name: 'factoryDeps', type: 'bytes32[]' },
-        { name: 'paymasterInput', type: 'bytes' }
-    ]
+        { name: "txType", type: "uint256" },
+        { name: "from", type: "uint256" },
+        { name: "to", type: "uint256" },
+        { name: "gasLimit", type: "uint256" },
+        { name: "gasPerPubdataByteLimit", type: "uint256" },
+        { name: "maxFeePerGas", type: "uint256" },
+        { name: "maxPriorityFeePerGas", type: "uint256" },
+        { name: "paymaster", type: "uint256" },
+        { name: "nonce", type: "uint256" },
+        { name: "value", type: "uint256" },
+        { name: "data", type: "bytes" },
+        { name: "factoryDeps", type: "bytes32[]" },
+        { name: "paymasterInput", type: "bytes" },
+    ],
 };
 
 export class EIP712Signer {
     private eip712Domain: Promise<TypedDataDomain>;
-    constructor(private ethSigner: ethers.Signer & TypedDataSigner, chainId: number | Promise<number>) {
+    constructor(
+        private ethSigner: ethers.Signer & TypedDataSigner,
+        chainId: number | Promise<number>,
+    ) {
         this.eip712Domain = Promise.resolve(chainId).then((chainId) => ({
-            name: 'zkSync',
-            version: '2',
-            chainId
+            name: "zkSync",
+            version: "2",
+            chainId,
         }));
     }
 
     static getSignInput(transaction: TransactionRequest) {
         const maxFeePerGas = transaction.maxFeePerGas ?? transaction.gasPrice ?? 0;
         const maxPriorityFeePerGas = transaction.maxPriorityFeePerGas ?? maxFeePerGas;
-        const gasPerPubdataByteLimit = transaction.customData?.gasPerPubdata ?? DEFAULT_GAS_PER_PUBDATA_LIMIT;
-        const signInput = {
+        const gasPerPubdataByteLimit =
+            transaction.customData?.gasPerPubdata ?? DEFAULT_GAS_PER_PUBDATA_LIMIT;
+        return {
             txType: transaction.type,
             from: transaction.from,
             to: transaction.to,
@@ -46,21 +55,23 @@ export class EIP712Signer {
             gasPerPubdataByteLimit: gasPerPubdataByteLimit,
             maxFeePerGas,
             maxPriorityFeePerGas,
-            paymaster: transaction.customData?.paymasterParams?.paymaster || ethers.constants.AddressZero,
+            paymaster:
+                transaction.customData?.paymasterParams?.paymaster ||
+                ethers.constants.AddressZero,
             nonce: transaction.nonce,
             value: transaction.value,
             data: transaction.data,
-            factoryDeps: transaction.customData?.factoryDeps?.map((dep) => hashBytecode(dep)) || [],
-            paymasterInput: transaction.customData?.paymasterParams?.paymasterInput || '0x'
+            factoryDeps:
+                transaction.customData?.factoryDeps?.map((dep) => hashBytecode(dep)) || [],
+            paymasterInput: transaction.customData?.paymasterParams?.paymasterInput || "0x",
         };
-        return signInput;
     }
 
     async sign(transaction: TransactionRequest): Promise<Signature> {
         return await this.ethSigner._signTypedData(
             await this.eip712Domain,
             eip712Types,
-            EIP712Signer.getSignInput(transaction)
+            EIP712Signer.getSignInput(transaction),
         );
     }
 
@@ -69,11 +80,15 @@ export class EIP712Signer {
             throw Error("Transaction chainId isn't set");
         }
         const domain = {
-            name: 'zkSync',
-            version: '2',
-            chainId: transaction.chainId
+            name: "zkSync",
+            version: "2",
+            chainId: transaction.chainId,
         };
-        return TypedDataEncoder.hash(domain, eip712Types, EIP712Signer.getSignInput(transaction));
+        return TypedDataEncoder.hash(
+            domain,
+            eip712Types,
+            EIP712Signer.getSignInput(transaction),
+        );
     }
 }
 
@@ -107,7 +122,9 @@ export class Signer extends AdapterL2(ethers.providers.JsonRpcSigner) {
         return await this.getTransactionCount(blockTag);
     }
 
-    override async sendTransaction(transaction: TransactionRequest): Promise<TransactionResponse> {
+    override async sendTransaction(
+        transaction: TransactionRequest,
+    ): Promise<TransactionResponse> {
         if (transaction.customData == null && transaction.type == null) {
             // use legacy txs by default
             transaction.type = 0;
@@ -118,11 +135,11 @@ export class Signer extends AdapterL2(ethers.providers.JsonRpcSigner) {
             const address = await this.getAddress();
             transaction.from ??= address;
             if (transaction.from.toLowerCase() != address.toLowerCase()) {
-                throw new Error('Transaction `from` address mismatch');
+                throw new Error("Transaction `from` address mismatch");
             }
             transaction.type = EIP712_TX_TYPE;
             transaction.value ??= 0;
-            transaction.data ??= '0x';
+            transaction.data ??= "0x";
             transaction.nonce ??= await this.getNonce();
             transaction.customData = this._fillCustomData(transaction.customData);
             transaction.gasPrice ??= await this.provider.getGasPrice();
@@ -193,7 +210,9 @@ export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
         return await this.getTransactionCount(blockTag);
     }
 
-    override async sendTransaction(transaction: TransactionRequest): Promise<TransactionResponse> {
+    override async sendTransaction(
+        transaction: TransactionRequest,
+    ): Promise<TransactionResponse> {
         if (transaction.customData == null && transaction.type == null) {
             // use legacy txs by default
             transaction.type = 0;
@@ -204,11 +223,11 @@ export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
             const address = await this.getAddress();
             transaction.from ??= address;
             if (transaction.from.toLowerCase() != address.toLowerCase()) {
-                throw new Error('Transaction `from` address mismatch');
+                throw new Error("Transaction `from` address mismatch");
             }
             transaction.type = EIP712_TX_TYPE;
             transaction.value ??= 0;
-            transaction.data ??= '0x';
+            transaction.data ??= "0x";
             transaction.nonce ??= await this.getNonce();
             transaction.customData = this._fillCustomData(transaction.customData);
             transaction.gasPrice ??= await this.provider.getGasPrice();
