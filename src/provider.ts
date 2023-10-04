@@ -13,9 +13,9 @@ import {
     JsonRpcError,
     JsonRpcResult,
     JsonRpcPayload,
-    resolveProperties
-} from 'ethers';
-import { IERC20__factory, IEthToken__factory, IL2Bridge__factory } from '../typechain';
+    resolveProperties,
+} from "ethers";
+import { IERC20__factory, IEthToken__factory, IL2Bridge__factory } from "../typechain";
 import {
     Address,
     TransactionResponse,
@@ -34,8 +34,8 @@ import {
     Network as ZkSyncNetwork,
     BatchDetails,
     Fee,
-    Transaction
-} from './types';
+    Transaction,
+} from "./types";
 import {
     isETH,
     getL2HashFromPriorityOp,
@@ -45,11 +45,16 @@ import {
     sleep,
     L2_ETH_TOKEN_ADDRESS,
     EIP712_TX_TYPE,
-    REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT
-} from './utils';
-import { Signer } from './signer';
+    REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
+} from "./utils";
+import { Signer } from "./signer";
 
-import { formatLog, formatBlock, formatTransactionResponse, formatTransactionReceipt } from './format';
+import {
+    formatLog,
+    formatBlock,
+    formatTransactionResponse,
+    formatTransactionReceipt,
+} from "./format";
 
 export class Provider extends ethers.JsonRpcProvider {
     protected contractAddresses: {
@@ -59,7 +64,9 @@ export class Provider extends ethers.JsonRpcProvider {
     };
 
     override _getBlockTag(blockTag?: BlockTag): string | Promise<string> {
-        if (blockTag == "committed") { return "committed"; }
+        if (blockTag == "committed") {
+            return "committed";
+        }
         return super._getBlockTag(blockTag);
     }
 
@@ -73,7 +80,10 @@ export class Provider extends ethers.JsonRpcProvider {
         return new Block(super._wrapBlock(block, network), this);
     }
 
-    override _wrapTransactionResponse(value: any, network: ethers.Network): TransactionResponse {
+    override _wrapTransactionResponse(
+        value: any,
+        network: ethers.Network,
+    ): TransactionResponse {
         const tx: any = formatTransactionResponse(value);
         return new TransactionResponse(super._wrapTransactionResponse(tx, network), this);
     }
@@ -91,7 +101,10 @@ export class Provider extends ethers.JsonRpcProvider {
         return (await super.getTransaction(txHash)) as TransactionResponse;
     }
 
-    override async getBlock(blockHashOrBlockTag: BlockTag, includeTxs?: boolean): Promise<Block> {
+    override async getBlock(
+        blockHashOrBlockTag: BlockTag,
+        includeTxs?: boolean,
+    ): Promise<Block> {
         return (await super.getBlock(blockHashOrBlockTag, includeTxs)) as Block;
     }
 
@@ -134,11 +147,11 @@ export class Provider extends ethers.JsonRpcProvider {
     }
 
     async estimateGasL1(transaction: TransactionRequest): Promise<bigint> {
-        return await this.send('zks_estimateGasL1ToL2', [this.getRpcTransaction(transaction)]);
+        return await this.send("zks_estimateGasL1ToL2", [this.getRpcTransaction(transaction)]);
     }
 
     async estimateFee(transaction: TransactionRequest): Promise<Fee> {
-        return await this.send('zks_estimateFee', [transaction]);
+        return await this.send("zks_estimateFee", [transaction]);
     }
 
     async getGasPrice(): Promise<bigint> {
@@ -153,11 +166,11 @@ export class Provider extends ethers.JsonRpcProvider {
     }
 
     async getLogProof(txHash: BytesLike, index?: number): Promise<MessageProof | null> {
-        return await this.send('zks_getL2ToL1LogProof', [ethers.hexlify(txHash), index]);
+        return await this.send("zks_getL2ToL1LogProof", [ethers.hexlify(txHash), index]);
     }
 
     async getL1BatchBlockRange(l1BatchNumber: number): Promise<[number, number] | null> {
-        const range = await this.send('zks_getL1BatchBlockRange', [l1BatchNumber]);
+        const range = await this.send("zks_getL1BatchBlockRange", [l1BatchNumber]);
         if (range == null) {
             return null;
         }
@@ -166,7 +179,7 @@ export class Provider extends ethers.JsonRpcProvider {
 
     async getMainContractAddress(): Promise<Address> {
         if (!this.contractAddresses.mainContract) {
-            this.contractAddresses.mainContract = await this.send('zks_getMainContract', []);
+            this.contractAddresses.mainContract = await this.send("zks_getMainContract", []);
         }
         return this.contractAddresses.mainContract!;
     }
@@ -174,28 +187,28 @@ export class Provider extends ethers.JsonRpcProvider {
     async getTestnetPaymasterAddress(): Promise<Address | null> {
         // Unlike contract's addresses, the testnet paymaster is not cached, since it can be trivially changed
         // on the fly by the server and should not be relied on to be constant
-        return await this.send('zks_getTestnetPaymaster', []);
+        return await this.send("zks_getTestnetPaymaster", []);
     }
 
     async getDefaultBridgeAddresses() {
         if (!this.contractAddresses.erc20BridgeL1) {
-            let addresses = await this.send('zks_getBridgeContracts', []);
+            let addresses = await this.send("zks_getBridgeContracts", []);
             this.contractAddresses.erc20BridgeL1 = addresses.l1Erc20DefaultBridge;
             this.contractAddresses.erc20BridgeL2 = addresses.l2Erc20DefaultBridge;
         }
         return {
             erc20L1: this.contractAddresses.erc20BridgeL1,
-            erc20L2: this.contractAddresses.erc20BridgeL2
+            erc20L2: this.contractAddresses.erc20BridgeL2,
         };
     }
 
     async getConfirmedTokens(start: number = 0, limit: number = 255): Promise<Token[]> {
-        const tokens: Token[] = await this.send('zks_getConfirmedTokens', [start, limit]);
+        const tokens: Token[] = await this.send("zks_getConfirmedTokens", [start, limit]);
         return tokens.map((token) => ({ address: token.l2Address, ...token }));
     }
 
     async getAllAccountBalances(address: Address): Promise<BalancesMap> {
-        let balances = await this.send('zks_getAllAccountBalances', [address]);
+        let balances = await this.send("zks_getAllAccountBalances", [address]);
         for (let token in balances) {
             balances[token] = BigInt(balances[token]);
         }
@@ -203,25 +216,25 @@ export class Provider extends ethers.JsonRpcProvider {
     }
 
     async l1ChainId(): Promise<number> {
-        const res = await this.send('zks_L1ChainId', []);
+        const res = await this.send("zks_L1ChainId", []);
         return Number(res);
     }
 
     async getL1BatchNumber(): Promise<number> {
-        const number = await this.send('zks_L1BatchNumber', []);
+        const number = await this.send("zks_L1BatchNumber", []);
         return Number(number);
     }
 
     async getL1BatchDetails(number: number): Promise<BatchDetails> {
-        return await this.send('zks_getL1BatchDetails', [number]);
+        return await this.send("zks_getL1BatchDetails", [number]);
     }
 
     async getBlockDetails(number: number): Promise<BlockDetails> {
-        return await this.send('zks_getBlockDetails', [number]);
+        return await this.send("zks_getBlockDetails", [number]);
     }
 
     async getTransactionDetails(txHash: BytesLike): Promise<TransactionDetails> {
-        return await this.send('zks_getTransactionDetails', [txHash]);
+        return await this.send("zks_getTransactionDetails", [txHash]);
     }
 
     async getWithdrawTx(transaction: {
@@ -235,7 +248,7 @@ export class Provider extends ethers.JsonRpcProvider {
         const { ...tx } = transaction;
 
         if (tx.to == null && tx.from == null) {
-            throw new Error('withdrawal target address is undefined');
+            throw new Error("withdrawal target address is undefined");
         }
 
         tx.to ??= tx.from;
@@ -252,7 +265,7 @@ export class Provider extends ethers.JsonRpcProvider {
                 // To avoid users shooting themselves into the foot, we will always use the amount to withdraw
                 // as the value
 
-                throw new Error('The tx.value is not equal to the value withdrawn');
+                throw new Error("The tx.value is not equal to the value withdrawn");
             }
 
             const ethL2Token = IEthToken__factory.connect(L2_ETH_TOKEN_ADDRESS, this);
@@ -295,7 +308,7 @@ export class Provider extends ethers.JsonRpcProvider {
             return {
                 ...tx.overrides,
                 to: tx.to,
-                value: tx.amount
+                value: tx.amount,
             };
         } else {
             const token = IERC20__factory.connect(tx.token, this);
@@ -320,33 +333,35 @@ export class Provider extends ethers.JsonRpcProvider {
         }
         switch (zksyncNetwork) {
             case ZkSyncNetwork.Localhost:
-                return new Provider('http://localhost:3050');
+                return new Provider("http://localhost:3050");
             case ZkSyncNetwork.Goerli:
-                return new Provider('https://zksync2-testnet.zksync.dev');
+                return new Provider("https://zksync2-testnet.zksync.dev");
             case ZkSyncNetwork.Mainnet:
-                return new Provider('https://zksync2-mainnet.zksync.io/');
+                return new Provider("https://zksync2-mainnet.zksync.io/");
         }
     }
 
     async newFilter(filter: FilterByBlockHash | Filter): Promise<bigint> {
-        const id = await this.send('eth_newFilter', [await this._getFilter(filter)]);
+        const id = await this.send("eth_newFilter", [await this._getFilter(filter)]);
         return BigInt(id);
     }
 
     async newBlockFilter(): Promise<bigint> {
-        const id = await this.send('eth_newBlockFilter', []);
+        const id = await this.send("eth_newBlockFilter", []);
         return BigInt(id);
     }
 
     async newPendingTransactionsFilter(): Promise<bigint> {
-        const id = await this.send('eth_newPendingTransactionFilter', []);
+        const id = await this.send("eth_newPendingTransactionFilter", []);
         return BigInt(id);
     }
 
     async getFilterChanges(idx: bigint): Promise<Array<Log | string>> {
-        const logs = await this.send('eth_getFilterChanges', [ethers.toBeHex(idx)]);
+        const logs = await this.send("eth_getFilterChanges", [ethers.toBeHex(idx)]);
         const network = await this.getNetwork();
-        return typeof logs[0] === 'string' ? logs : logs.map((log: any) => this._wrapLog(log, network));
+        return typeof logs[0] === "string"
+            ? logs
+            : logs.map((log: any) => this._wrapLog(log, network));
     }
 
     // This is inefficient. Status should probably be indicated in the transaction receipt.
@@ -358,7 +373,7 @@ export class Provider extends ethers.JsonRpcProvider {
         if (tx.blockNumber == null) {
             return TransactionStatus.Processing;
         }
-        const verifiedBlock = await this.getBlock('finalized');
+        const verifiedBlock = await this.getBlock("finalized");
         if (tx.blockNumber <= verifiedBlock.number) {
             return TransactionStatus.Finalized;
         }
@@ -370,9 +385,9 @@ export class Provider extends ethers.JsonRpcProvider {
             blockNumber: this.getBlockNumber(),
             hash: this._perform({
                 method: "broadcastTransaction",
-                signedTransaction: signedTx
+                signedTransaction: signedTx,
             }),
-            network: this.getNetwork()
+            network: this.getNetwork(),
         });
 
         const tx = Transaction.from(signedTx);
@@ -380,10 +395,14 @@ export class Provider extends ethers.JsonRpcProvider {
             throw new Error("@TODO: the returned hash did not match");
         }
 
-        return this._wrapTransactionResponse(<any>tx, network).replaceableTransaction(blockNumber);
+        return this._wrapTransactionResponse(<any>tx, network).replaceableTransaction(
+            blockNumber,
+        );
     }
 
-    async getL2TransactionFromPriorityOp(l1TxResponse: ethers.TransactionResponse): Promise<TransactionResponse> {
+    async getL2TransactionFromPriorityOp(
+        l1TxResponse: ethers.TransactionResponse,
+    ): Promise<TransactionResponse> {
         const receipt = await l1TxResponse.wait();
         const l2Hash = getL2HashFromPriorityOp(receipt, await this.getMainContractAddress());
 
@@ -396,7 +415,9 @@ export class Provider extends ethers.JsonRpcProvider {
         return await this.getTransaction(l2Hash);
     }
 
-    async getPriorityOpResponse(l1TxResponse: ethers.TransactionResponse): Promise<PriorityOpResponse> {
+    async getPriorityOpResponse(
+        l1TxResponse: ethers.TransactionResponse,
+    ): Promise<PriorityOpResponse> {
         const l2Response = { ...l1TxResponse } as PriorityOpResponse;
 
         l2Response.waitL1Commit = l2Response.wait;
@@ -413,12 +434,16 @@ export class Provider extends ethers.JsonRpcProvider {
     }
 
     async getContractAccountInfo(address: Address): Promise<ContractAccountInfo> {
-        const deployerContract = new Contract(CONTRACT_DEPLOYER_ADDRESS, CONTRACT_DEPLOYER.fragments, this);
+        const deployerContract = new Contract(
+            CONTRACT_DEPLOYER_ADDRESS,
+            CONTRACT_DEPLOYER.fragments,
+            this,
+        );
         const data = await deployerContract.getAccountInfo(address);
 
         return {
             supportedAAVersion: data.supportedAAVersion,
-            nonceOrdering: data.nonceOrdering
+            nonceOrdering: data.nonceOrdering,
         };
     }
 
@@ -440,7 +465,7 @@ export class Provider extends ethers.JsonRpcProvider {
         transaction.caller ??= ethers.Wallet.createRandom().address;
 
         const customData = {
-            gasPerPubdata: transaction.gasPerPubdataByte
+            gasPerPubdata: transaction.gasPerPubdataByte,
         };
         if (transaction.factoryDeps) {
             Object.assign(customData, { factoryDeps: transaction.factoryDeps });
@@ -451,7 +476,7 @@ export class Provider extends ethers.JsonRpcProvider {
             data: transaction.calldata,
             to: transaction.contractAddress,
             value: transaction.l2Value,
-            customData
+            customData,
         });
     }
 
@@ -461,20 +486,23 @@ export class Provider extends ethers.JsonRpcProvider {
             return result;
         }
         result.eip712Meta = {
-            gasPerPubdata: ethers.toBeHex(tx.customData.gasPerPubdata ?? 0)
+            gasPerPubdata: ethers.toBeHex(tx.customData.gasPerPubdata ?? 0),
         } as any;
         if (tx.customData.factoryDeps) {
-            result.eip712Meta.factoryDeps = tx.customData.factoryDeps.map((dep: ethers.BytesLike) =>
-                // TODO (SMA-1605): we arraify instead of hexlifying because server expects Vec<u8>.
-                //  We should change deserialization there.
-                Array.from(ethers.getBytes(dep))
+            result.eip712Meta.factoryDeps = tx.customData.factoryDeps.map(
+                (dep: ethers.BytesLike) =>
+                    // TODO (SMA-1605): we arraify instead of hexlifying because server expects Vec<u8>.
+                    //  We should change deserialization there.
+                    Array.from(ethers.getBytes(dep)),
             );
         }
         if (tx.customData.paymasterParams) {
             // @ts-ignore
             result.eip712Meta.paymasterParams = {
                 paymaster: ethers.hexlify(tx.customData.paymasterParams.paymaster),
-                paymasterInput: Array.from(ethers.getBytes(tx.customData.paymasterParams.paymasterInput))
+                paymasterInput: Array.from(
+                    ethers.getBytes(tx.customData.paymasterParams.paymasterInput),
+                ),
             };
         }
         return result;
@@ -489,17 +517,17 @@ export class BrowserProvider extends Provider {
 
         this.#request = async (method: string, params: Array<any> | Record<string, any>) => {
             const payload = { method, params };
-            this.emit('debug', { action: 'sendEip1193Request', payload });
+            this.emit("debug", { action: "sendEip1193Request", payload });
             try {
                 const result = await ethereum.request(payload);
-                this.emit('debug', { action: 'receiveEip1193Result', result });
+                this.emit("debug", { action: "receiveEip1193Result", result });
                 return result;
             } catch (e: any) {
                 const error = new Error(e.message);
                 (<any>error).code = e.code;
                 (<any>error).data = e.data;
                 (<any>error).payload = payload;
-                this.emit('debug', { action: 'receiveEip1193Error', error });
+                this.emit("debug", { action: "receiveEip1193Error", error });
                 throw error;
             }
         };
@@ -507,9 +535,14 @@ export class BrowserProvider extends Provider {
 
     // @ts-ignore
     override async _send(
-        payload: JsonRpcPayload | Array<JsonRpcPayload>
+        payload: JsonRpcPayload | Array<JsonRpcPayload>,
     ): Promise<Array<JsonRpcResult | JsonRpcError>> {
-        ethers.assertArgument(!Array.isArray(payload), 'EIP-1193 does not support batch request', 'payload', payload);
+        ethers.assertArgument(
+            !Array.isArray(payload),
+            "EIP-1193 does not support batch request",
+            "payload",
+            payload,
+        );
 
         try {
             const result = await this.#request(payload.method, payload.params || []);
@@ -518,8 +551,8 @@ export class BrowserProvider extends Provider {
             return [
                 {
                     id: payload.id,
-                    error: { code: e.code, data: e.data, message: e.message }
-                }
+                    error: { code: e.code, data: e.data, message: e.message },
+                },
             ];
         }
     }
@@ -545,8 +578,8 @@ export class BrowserProvider extends Provider {
             address = 0;
         }
 
-        const accounts = await this.send('eth_accounts', []);
-        if (typeof address === 'number') {
+        const accounts = await this.send("eth_accounts", []);
+        if (typeof address === "number") {
             return accounts.length > address;
         }
 
@@ -561,14 +594,17 @@ export class BrowserProvider extends Provider {
 
         if (!(await this.hasSigner(address))) {
             try {
-                await this.#request('eth_requestAccounts', []);
+                await this.#request("eth_requestAccounts", []);
             } catch (error: any) {
                 const payload = error.payload;
                 throw this.getRpcError(payload, { id: payload.id, error });
             }
         }
 
-        return Signer.from((await super.getSigner(address)) as any, Number((await this.getNetwork()).chainId));
+        return Signer.from(
+            (await super.getSigner(address)) as any,
+            Number((await this.getNetwork()).chainId),
+        );
     }
 
     override async estimateGas(transaction: TransactionRequest): Promise<bigint> {

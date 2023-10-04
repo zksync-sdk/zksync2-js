@@ -4,9 +4,9 @@ import {
     BytesLike,
     ethers,
     Signature as EthersSignature,
-    TransactionRequest as EthersTransactionRequest
-} from 'ethers';
-import {EIP712_TX_TYPE, parseEip712, serializeEip712, sleep, eip712TxHash} from './utils';
+    TransactionRequest as EthersTransactionRequest,
+} from "ethers";
+import { EIP712_TX_TYPE, parseEip712, serializeEip712, sleep, eip712TxHash } from "./utils";
 
 // 0x-prefixed, hex encoded, ethereum account address
 export type Address = string;
@@ -19,25 +19,25 @@ export enum Network {
     Ropsten = 3,
     Rinkeby = 4,
     Goerli = 5,
-    Localhost = 9
+    Localhost = 9,
 }
 
 export enum PriorityQueueType {
     Deque = 0,
     HeapBuffer = 1,
-    Heap = 2
+    Heap = 2,
 }
 
 export enum PriorityOpTree {
     Full = 0,
-    Rollup = 1
+    Rollup = 1,
 }
 
 export enum TransactionStatus {
-    NotFound = 'not-found',
-    Processing = 'processing',
-    Committed = 'committed',
-    Finalized = 'finalized'
+    NotFound = "not-found",
+    Processing = "processing",
+    Committed = "committed",
+    Finalized = "finalized",
 }
 
 export type PaymasterParams = {
@@ -55,14 +55,14 @@ export type Eip712Meta = {
 export type BlockTag =
     | BigNumberish
     | string // block hash
-    | 'committed'
-    | 'finalized'
-    | 'latest'
-    | 'earliest'
-    | 'pending';
+    | "committed"
+    | "finalized"
+    | "latest"
+    | "earliest"
+    | "pending";
 
 // TODO (SMA-1585): Support create2 variants.
-export type DeploymentType = 'create' | 'createAccount';
+export type DeploymentType = "create" | "createAccount";
 
 export interface Token {
     l1Address: Address;
@@ -77,7 +77,6 @@ export interface Fee {
     readonly gasPerPubdataLimit: bigint;
     readonly maxPriorityFeePerGas: bigint;
     readonly maxFeePerGas: bigint;
-
 }
 
 export interface MessageProof {
@@ -110,7 +109,10 @@ export class TransactionResponse extends ethers.TransactionResponse {
     }
 
     override replaceableTransaction(startBlock: number): TransactionResponse {
-        return new TransactionResponse(super.replaceableTransaction(startBlock), this.provider);
+        return new TransactionResponse(
+            super.replaceableTransaction(startBlock),
+            this.provider,
+        );
     }
 
     override async getBlock(): Promise<Block> {
@@ -121,9 +123,11 @@ export class TransactionResponse extends ethers.TransactionResponse {
         while (true) {
             const receipt = await this.wait();
             if (receipt.blockNumber) {
-                const block = await this.provider.getBlock('finalized');
+                const block = await this.provider.getBlock("finalized");
                 if (receipt.blockNumber <= block!.number) {
-                    return (await this.provider.getTransactionReceipt(receipt.hash)) as TransactionReceipt;
+                    return (await this.provider.getTransactionReceipt(
+                        receipt.hash,
+                    )) as TransactionReceipt;
                 }
             } else {
                 await sleep(500);
@@ -132,12 +136,12 @@ export class TransactionResponse extends ethers.TransactionResponse {
     }
 
     override toJSON(): any {
-        const {l1BatchNumber, l1BatchTxIndex} = this;
+        const { l1BatchNumber, l1BatchTxIndex } = this;
 
         return {
             ...super.toJSON(),
             l1BatchNumber,
-            l1BatchTxIndex
+            l1BatchTxIndex,
         };
     }
 }
@@ -153,9 +157,11 @@ export class TransactionReceipt extends ethers.TransactionReceipt {
         this.l1BatchNumber = params.l1BatchNumber;
         this.l1BatchTxIndex = params.l1BatchTxIndex;
         this.l2ToL1Logs = params.l2ToL1Logs;
-        this._logs = Object.freeze(params.logs.map((log) => {
-            return new Log(log, provider);
-        }));
+        this._logs = Object.freeze(
+            params.logs.map((log) => {
+                return new Log(log, provider);
+            }),
+        );
     }
 
     override get logs(): ReadonlyArray<Log> {
@@ -171,12 +177,12 @@ export class TransactionReceipt extends ethers.TransactionReceipt {
     }
 
     override toJSON(): any {
-        const {l1BatchNumber, l1BatchTxIndex, l2ToL1Logs} = this;
+        const { l1BatchNumber, l1BatchTxIndex, l2ToL1Logs } = this;
         return {
             ...super.toJSON(),
             l1BatchNumber,
             l1BatchTxIndex,
-            l2ToL1Logs
+            l2ToL1Logs,
         };
     }
 }
@@ -192,11 +198,11 @@ export class Block extends ethers.Block {
     }
 
     override toJSON(): any {
-        const {l1BatchNumber, l1BatchTimestamp: l1BatchTxIndex} = this;
+        const { l1BatchNumber, l1BatchTimestamp: l1BatchTxIndex } = this;
         return {
             ...super.toJSON(),
             l1BatchNumber,
-            l1BatchTxIndex
+            l1BatchTxIndex,
         };
     }
 
@@ -218,10 +224,10 @@ export class Log extends ethers.Log {
     }
 
     override toJSON(): any {
-        const {l1BatchNumber} = this;
+        const { l1BatchNumber } = this;
         return {
             ...super.toJSON(),
-            l1BatchNumber
+            l1BatchNumber,
         };
     }
 
@@ -246,8 +252,8 @@ export class Transaction extends ethers.Transaction {
     customData: null | Eip712Meta;
     // super.#type is private and there is no way to override which enforced to
     // introduce following variable
-    #type: number | null
-    #from: string | null
+    #type: number | null;
+    #from: string | null;
 
     override get type(): number | null {
         return this.#type == EIP712_TX_TYPE ? this.#type : super.type;
@@ -264,9 +270,8 @@ export class Transaction extends ethers.Transaction {
         }
     }
 
-
     static override from(tx: string | TransactionLike): Transaction {
-        if (typeof tx === 'string') {
+        if (typeof tx === "string") {
             const payload = ethers.getBytes(tx);
             if (payload[0] !== EIP712_TX_TYPE) {
                 return Transaction.from(ethers.Transaction.from(tx));
@@ -285,7 +290,8 @@ export class Transaction extends ethers.Transaction {
             if (tx.nonce != null) result.nonce = tx.nonce;
             if (tx.gasLimit != null) result.gasLimit = tx.gasLimit;
             if (tx.gasPrice != null) result.gasPrice = tx.gasPrice;
-            if (tx.maxPriorityFeePerGas != null) result.maxPriorityFeePerGas = tx.maxPriorityFeePerGas;
+            if (tx.maxPriorityFeePerGas != null)
+                result.maxPriorityFeePerGas = tx.maxPriorityFeePerGas;
             if (tx.maxFeePerGas != null) result.maxFeePerGas = tx.maxFeePerGas;
             if (tx.data != null) result.data = tx.data;
             if (tx.value != null) result.value = tx.value;
@@ -294,12 +300,27 @@ export class Transaction extends ethers.Transaction {
             if (tx.accessList != null) result.accessList = tx.accessList;
 
             if (tx.from != null) {
-                assertArgument(result.isSigned(), "unsigned transaction cannot define from", "tx", tx);
-                assertArgument(result.from.toLowerCase() === (tx.from || "").toLowerCase(), "from mismatch", "tx", tx);
+                assertArgument(
+                    result.isSigned(),
+                    "unsigned transaction cannot define from",
+                    "tx",
+                    tx,
+                );
+                assertArgument(
+                    result.from.toLowerCase() === (tx.from || "").toLowerCase(),
+                    "from mismatch",
+                    "tx",
+                    tx,
+                );
             }
 
             if (tx.hash != null) {
-                assertArgument(result.isSigned(), "unsigned transaction cannot define hash", "tx", tx);
+                assertArgument(
+                    result.isSigned(),
+                    "unsigned transaction cannot define hash",
+                    "tx",
+                    tx,
+                );
                 assertArgument(result.hash === tx.hash, "hash mismatch", "tx", tx);
             }
 
@@ -322,20 +343,27 @@ export class Transaction extends ethers.Transaction {
     }
 
     override toJSON(): any {
-        const {customData} = this;
+        const { customData } = this;
         return {
             ...super.toJSON(),
             type: this.#type == null ? this.type : this.#type,
-            customData
+            customData,
         };
     }
 
     override get typeName(): string {
-        return this.#type === EIP712_TX_TYPE ? 'zksync' : super.typeName;
+        return this.#type === EIP712_TX_TYPE ? "zksync" : super.typeName;
     }
 
-    override isSigned(): this is Transaction & { type: number; typeName: string; from: string; signature: Signature } {
-        return this.#type === EIP712_TX_TYPE ? this.customData?.customSignature !== null : super.isSigned();
+    override isSigned(): this is Transaction & {
+        type: number;
+        typeName: string;
+        from: string;
+        signature: Signature;
+    } {
+        return this.#type === EIP712_TX_TYPE
+            ? this.customData?.customSignature !== null
+            : super.isSigned();
     }
 
     override get hash(): string | null {
@@ -385,14 +413,14 @@ export interface DeploymentInfo {
 }
 
 export interface ApprovalBasedPaymasterInput {
-    type: 'ApprovalBased';
+    type: "ApprovalBased";
     token: Address;
     minimalAllowance: BigNumberish;
     innerInput: BytesLike;
 }
 
 export interface GeneralPaymasterInput {
-    type: 'General';
+    type: "General";
     innerInput: BytesLike;
 }
 
@@ -406,12 +434,12 @@ export type PaymasterInput = ApprovalBasedPaymasterInput | GeneralPaymasterInput
 
 export enum AccountAbstractionVersion {
     None = 0,
-    Version1 = 1
+    Version1 = 1,
 }
 
 export enum AccountNonceOrdering {
     Sequential = 0,
-    Arbitrary = 1
+    Arbitrary = 1,
 }
 
 export interface ContractAccountInfo {

@@ -13,8 +13,8 @@ import {
     Signature,
     TransactionReceiptParams,
     TransactionResponseParams,
-    zeroPadValue
-} from 'ethers';
+    zeroPadValue,
+} from "ethers";
 
 const BN_0 = BigInt(0);
 
@@ -32,7 +32,7 @@ export function allowNull(format: FormatFunc, nullValue?: any): FormatFunc {
 export function arrayOf(format: FormatFunc): FormatFunc {
     return (array: any) => {
         if (!Array.isArray(array)) {
-            throw new Error('not an array');
+            throw new Error("not an array");
         }
         return array.map((i) => format(i));
     };
@@ -41,7 +41,10 @@ export function arrayOf(format: FormatFunc): FormatFunc {
 // Requires an object which matches a fleet of other formatters
 // Any FormatFunc may return `undefined` to have the value omitted
 // from the result object. Calls preserve `this`.
-export function object(format: Record<string, FormatFunc>, altNames?: Record<string, Array<string>>): FormatFunc {
+export function object(
+    format: Record<string, FormatFunc>,
+    altNames?: Record<string, Array<string>>,
+): FormatFunc {
     return (value: any) => {
         const result: any = {};
         for (const key in format) {
@@ -61,8 +64,10 @@ export function object(format: Record<string, FormatFunc>, altNames?: Record<str
                     result[key] = nv;
                 }
             } catch (error) {
-                const message = error instanceof Error ? error.message : 'not-an-error';
-                assert(false, `invalid value for value.${key} (${message})`, 'BAD_DATA', {value});
+                const message = error instanceof Error ? error.message : "not-an-error";
+                assert(false, `invalid value for value.${key} (${message})`, "BAD_DATA", {
+                    value,
+                });
             }
         }
         return result;
@@ -72,28 +77,28 @@ export function object(format: Record<string, FormatFunc>, altNames?: Record<str
 export function formatBoolean(value: any): boolean {
     switch (value) {
         case true:
-        case 'true':
+        case "true":
             return true;
         case false:
-        case 'false':
+        case "false":
             return false;
     }
-    assertArgument(false, `invalid boolean; ${JSON.stringify(value)}`, 'value', value);
+    assertArgument(false, `invalid boolean; ${JSON.stringify(value)}`, "value", value);
 }
 
 export function formatData(value: string): string {
-    assertArgument(isHexString(value, true), 'invalid data', 'value', value);
+    assertArgument(isHexString(value, true), "invalid data", "value", value);
     return value;
 }
 
 export function formatHash(value: any): string {
-    assertArgument(isHexString(value, 32), 'invalid hash', 'value', value);
+    assertArgument(isHexString(value, 32), "invalid hash", "value", value);
     return value;
 }
 
 export function formatUint256(value: any): string {
     if (!isHexString(value)) {
-        throw new Error('invalid uint256');
+        throw new Error("invalid uint256");
     }
     return zeroPadValue(value, 32);
 }
@@ -109,11 +114,11 @@ const _formatLog = object(
         topics: arrayOf(formatHash),
         transactionHash: formatHash,
         transactionIndex: getNumber,
-        l1BatchNumber: allowNull(getNumber)
+        l1BatchNumber: allowNull(getNumber),
     },
     {
-        index: ['logIndex']
-    }
+        index: ["logIndex"],
+    },
 );
 
 export function formatLog(value: any): LogParams {
@@ -138,13 +143,13 @@ const _formatBlock = object({
     baseFeePerGas: allowNull(getBigInt),
 
     l1BatchNumber: allowNull(getNumber),
-    l1BatchTimestamp: allowNull(getNumber)
+    l1BatchTimestamp: allowNull(getNumber),
 });
 
 export function formatBlock(value: any): BlockParams {
     const result = _formatBlock(value);
     result.transactions = value.transactions.map((tx: string | TransactionResponseParams) => {
-        if (typeof tx === 'string') {
+        if (typeof tx === "string") {
             return tx;
         }
         return formatTransactionResponse(tx);
@@ -162,11 +167,11 @@ const _formatReceiptLog = object(
         data: formatData,
         index: getNumber,
         blockHash: formatHash,
-        l1BatchNumber: allowNull(getNumber)
+        l1BatchNumber: allowNull(getNumber),
     },
     {
-        index: ['logIndex']
-    }
+        index: ["logIndex"],
+    },
 );
 
 export function formatReceiptLog(value: any): LogParams {
@@ -184,7 +189,7 @@ const formatL2ToL1Log = object({
     key: formatHash,
     value: formatHash,
     transactionHash: formatHash,
-    logIndex: getNumber
+    logIndex: getNumber,
 });
 
 const _formatTransactionReceipt = object(
@@ -197,7 +202,7 @@ const _formatTransactionReceipt = object(
         root: allowNull(hexlify),
         gasUsed: getBigInt,
         logsBloom: allowNull(formatData),
-        blockHash: allowNull(formatHash,null),
+        blockHash: allowNull(formatHash, null),
         hash: formatHash,
         logs: arrayOf(formatReceiptLog),
         blockNumber: allowNull(getNumber, null),
@@ -208,13 +213,13 @@ const _formatTransactionReceipt = object(
         type: allowNull(getNumber, 0),
         l1BatchNumber: allowNull(getNumber),
         l1BatchTxIndex: allowNull(getNumber),
-        l2ToL1Logs: allowNull(arrayOf(formatL2ToL1Log), [])
+        l2ToL1Logs: allowNull(arrayOf(formatL2ToL1Log), []),
     },
     {
-        effectiveGasPrice: ['gasPrice'],
-        hash: ['transactionHash'],
-        index: ['transactionIndex']
-    }
+        effectiveGasPrice: ["gasPrice"],
+        hash: ["transactionHash"],
+        index: ["transactionIndex"],
+    },
 );
 
 export function formatTransactionReceipt(value: any): TransactionReceiptParams {
@@ -225,7 +230,7 @@ export function formatTransactionResponse(value: any): TransactionResponseParams
     // Some clients (TestRPC) do strange things like return 0x0 for the
     // 0 address; correct this to be a real address
     if (value.to && getBigInt(value.to) === BN_0) {
-        value.to = '0x0000000000000000000000000000000000000000';
+        value.to = "0x0000000000000000000000000000000000000000";
     }
 
     const result = object(
@@ -233,7 +238,7 @@ export function formatTransactionResponse(value: any): TransactionResponseParams
             hash: formatHash,
 
             type: (value: any) => {
-                if (value === '0x' || value == null) {
+                if (value === "0x" || value == null) {
                     return 0;
                 }
                 return getNumber(value);
@@ -264,12 +269,12 @@ export function formatTransactionResponse(value: any): TransactionResponseParams
             chainId: allowNull(getBigInt, null),
 
             l1BatchNumber: allowNull(getNumber),
-            l1BatchTxIndex: allowNull(getNumber)
+            l1BatchTxIndex: allowNull(getNumber),
         },
         {
-            data: ['input'],
-            gasLimit: ['gas']
-        }
+            data: ["input"],
+            gasLimit: ["gas"],
+        },
     )(value);
 
     // If to and creates are empty, populate the creates from the value
@@ -294,7 +299,6 @@ export function formatTransactionResponse(value: any): TransactionResponseParams
         // which causes signature computation to fail
         result.signature = Signature.from(null);
     }
-
 
     // Some backends omit ChainId on legacy transactions, but we can compute it
     if (result.chainId == null) {
