@@ -1,4 +1,4 @@
-import { BigNumberish, ethers } from 'ethers';
+import { BigNumberish, ethers } from "ethers";
 
 interface CallDataParams {
     constructorCall?: boolean;
@@ -29,7 +29,7 @@ export function parseCalldata(calldata: ethers.BytesLike, params?: CallDataParam
     // The first four bytes of the call data for a function call specifies the function to be called.
     // It is the first four bytes of the Keccak-256 hash of the signature of the function.
     if (bytes.length < 4) {
-        throw new Error('No function selector found');
+        throw new Error("No function selector found");
     }
 
     const selector = ethers.hexlify(bytes.slice(0, 4));
@@ -37,7 +37,7 @@ export function parseCalldata(calldata: ethers.BytesLike, params?: CallDataParam
     // All the arguments follow the selector and are encoded as defined in the ABI spec.
     // Arguments are aligned to 32 bytes each.
     if (bytes.length % 32 !== 4) {
-        throw new Error('Unsupported arguments alignment');
+        throw new Error("Unsupported arguments alignment");
     }
 
     const input: string[] = [];
@@ -49,7 +49,7 @@ export function parseCalldata(calldata: ethers.BytesLike, params?: CallDataParam
     return {
         hash: selector,
         input,
-        ...params
+        ...params,
     };
 }
 
@@ -87,7 +87,10 @@ export function calldataBytes(calldata: CallData): Uint8Array {
             const argument = toLeBytes(calldata.input[i]);
 
             buffer.set(argument.slice(SELECTOR_SIZE_BYTES), offset);
-            buffer.set(argument.slice(0, SELECTOR_SIZE_BYTES), offset + 2 * FIELD_SIZE - SELECTOR_SIZE_BYTES);
+            buffer.set(
+                argument.slice(0, SELECTOR_SIZE_BYTES),
+                offset + 2 * FIELD_SIZE - SELECTOR_SIZE_BYTES,
+            );
         }
 
         calldataSize = SELECTOR_SIZE_BYTES + calldata.input.length * FIELD_SIZE;
