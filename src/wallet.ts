@@ -2,11 +2,7 @@ import { EIP712Signer } from "./signer";
 import { Provider } from "./provider";
 import { EIP712_TX_TYPE, serializeEip712 } from "./utils";
 import { ethers, ProgressCallback } from "ethers";
-import {
-    TransactionLike,
-    TransactionRequest,
-    TransactionResponse,
-} from "./types";
+import { TransactionLike, TransactionRequest, TransactionResponse } from "./types";
 import { AdapterL1, AdapterL2 } from "./adapters";
 
 export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
@@ -120,7 +116,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
             if (from.toLowerCase() != this.address.toLowerCase()) {
                 throw new Error("Transaction `from` address mismatch");
             }
-            transaction.customData??= {};
+            transaction.customData ??= {};
             transaction.customData.customSignature = await this.eip712.sign(transaction);
             const populated = await this.populateTransaction(transaction);
 

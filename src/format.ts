@@ -15,7 +15,7 @@ import {
     zeroPadValue,
 } from "ethers";
 
-import {LogParams} from "./types";
+import { LogParams } from "./types";
 
 const BN_0 = BigInt(0);
 

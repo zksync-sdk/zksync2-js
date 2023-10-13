@@ -3,7 +3,8 @@ import {
     BigNumberish,
     BytesLike,
     ethers,
-    Signature as EthersSignature, SignatureLike,
+    Signature as EthersSignature,
+    SignatureLike,
     TransactionRequest as EthersTransactionRequest,
 } from "ethers";
 import { EIP712_TX_TYPE, parseEip712, serializeEip712, sleep, eip712TxHash } from "./utils";
@@ -61,8 +62,7 @@ export type BlockTag =
     | "earliest"
     | "pending";
 
-// TODO (SMA-1585): Support create2 variants.
-export type DeploymentType = "create" | "createAccount";
+export type DeploymentType = "create" | "createAccount" | "create2" | "create2Account";
 
 export interface Token {
     l1Address: Address;
@@ -380,7 +380,7 @@ export class Transaction extends ethers.Transaction {
     }
 
     override get from(): string | null {
-        return this.#type === EIP712_TX_TYPE ? this.#from as string : super.from;
+        return this.#type === EIP712_TX_TYPE ? (this.#from as string) : super.from;
     }
     override set from(value: string | null) {
         this.#from = value;

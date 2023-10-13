@@ -57,19 +57,23 @@ import {
     formatTransactionReceipt,
 } from "./format";
 
-
 type Constructor<T = {}> = new (...args: any[]) => T;
 
-export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiProvider>> (ProviderType: TBase) {
+export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiProvider>>(
+    ProviderType: TBase,
+) {
     return class Provider extends ProviderType {
-
-        override _send(payload: JsonRpcPayload | Array<JsonRpcPayload>): Promise<Array<JsonRpcResult | JsonRpcError>> {
+        override _send(
+            payload: JsonRpcPayload | Array<JsonRpcPayload>,
+        ): Promise<Array<JsonRpcResult | JsonRpcError>> {
             throw new Error("Must be implemented by the derived class!");
         }
 
-        get contractAddresses(): {mainContract?: Address,
-            erc20BridgeL1?: Address,
-            erc20BridgeL2?: Address} {
+        get contractAddresses(): {
+            mainContract?: Address;
+            erc20BridgeL1?: Address;
+            erc20BridgeL2?: Address;
+        } {
             throw new Error("Must be implemented by the derived class!");
         }
 
@@ -97,14 +101,19 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             return new TransactionResponse(super._wrapTransactionResponse(tx, network), this);
         }
 
-        override _wrapTransactionReceipt(value: any, network: ethers.Network): TransactionReceipt {
+        override _wrapTransactionReceipt(
+            value: any,
+            network: ethers.Network,
+        ): TransactionReceipt {
             const receipt: any = formatTransactionReceipt(value);
             return new TransactionReceipt(receipt, this);
         }
 
         override async getTransactionReceipt(txHash: string): Promise<TransactionReceipt> {
             while (true) {
-                const receipt = (await super.getTransactionReceipt(txHash)) as TransactionReceipt;
+                const receipt = (await super.getTransactionReceipt(
+                    txHash,
+                )) as TransactionReceipt;
                 if (receipt.blockNumber) {
                     return receipt;
                 }
@@ -127,7 +136,11 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             return (await super.getLogs(filter)) as Log[];
         }
 
-        override async getBalance(address: Address, blockTag?: BlockTag, tokenAddress?: Address): Promise<bigint> {
+        override async getBalance(
+            address: Address,
+            blockTag?: BlockTag,
+            tokenAddress?: Address,
+        ): Promise<bigint> {
             if (tokenAddress == null || isETH(tokenAddress)) {
                 // requesting ETH balance
                 return await super.getBalance(address, blockTag);
@@ -162,7 +175,9 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
         }
 
         async estimateGasL1(transaction: TransactionRequest): Promise<bigint> {
-            return await this.send("zks_estimateGasL1ToL2", [this.getRpcTransaction(transaction)]);
+            return await this.send("zks_estimateGasL1ToL2", [
+                this.getRpcTransaction(transaction),
+            ]);
         }
 
         async estimateFee(transaction: TransactionRequest): Promise<Fee> {
@@ -188,7 +203,10 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
 
         async getMainContractAddress(): Promise<Address> {
             if (!this.contractAddresses.mainContract) {
-                this.contractAddresses.mainContract = await this.send("zks_getMainContract", []);
+                this.contractAddresses.mainContract = await this.send(
+                    "zks_getMainContract",
+                    [],
+                );
             }
             return this.contractAddresses.mainContract!;
         }
@@ -287,7 +305,12 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             }
 
             const bridge = IL2Bridge__factory.connect(tx.bridgeAddress!, this);
-            return bridge.withdraw.populateTransaction(tx.to as Address, tx.token, tx.amount, tx.overrides);
+            return bridge.withdraw.populateTransaction(
+                tx.to as Address,
+                tx.token,
+                tx.amount,
+                tx.overrides,
+            );
         }
 
         async estimateGasWithdraw(transaction: {
@@ -321,7 +344,11 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
                 };
             } else {
                 const token = IERC20__factory.connect(tx.token, this);
-                return await token.transfer.populateTransaction(tx.to, tx.amount, tx.overrides);
+                return await token.transfer.populateTransaction(
+                    tx.to,
+                    tx.amount,
+                    tx.overrides,
+                );
             }
         }
 
@@ -368,7 +395,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             if (tx.blockNumber == null) {
                 return TransactionStatus.Processing;
             }
-            const verifiedBlock = await this.getBlock("finalized") as Block;
+            const verifiedBlock = (await this.getBlock("finalized")) as Block;
             if (tx.blockNumber <= verifiedBlock.number) {
                 return TransactionStatus.Finalized;
             }
@@ -399,7 +426,10 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             l1TxResponse: ethers.TransactionResponse,
         ): Promise<TransactionResponse> {
             const receipt = await l1TxResponse.wait();
-            const l2Hash = getL2HashFromPriorityOp(receipt as ethers.TransactionReceipt, await this.getMainContractAddress());
+            const l2Hash = getL2HashFromPriorityOp(
+                receipt as ethers.TransactionReceipt,
+                await this.getMainContractAddress(),
+            );
 
             let status = null;
             do {
@@ -514,19 +544,29 @@ export class Provider extends JsonRpcApiProvider(ethers.JsonRpcProvider) {
         erc20BridgeL2?: Address;
     };
 
-    override get contractAddresses(): { mainContract?: Address; erc20BridgeL1?: Address; erc20BridgeL2?: Address } {
+    override get contractAddresses(): {
+        mainContract?: Address;
+        erc20BridgeL1?: Address;
+        erc20BridgeL2?: Address;
+    } {
         return this._contractAddresses;
     }
 
     constructor(url?: ethers.FetchRequest | string, network?: Networkish, options?: any) {
-        if (url == null) { url = "http:/\/localhost:3050"; }
+        if (url == null) {
+            url = "http://localhost:3050";
+        }
         super(url, network, options);
-        typeof(url) === "string" ? this.#connect = new FetchRequest(url) : this.#connect = url.clone();
+        typeof url === "string"
+            ? (this.#connect = new FetchRequest(url))
+            : (this.#connect = url.clone());
         this.pollingInterval = 500;
         this._contractAddresses = {};
     }
 
-    override async _send(payload: JsonRpcPayload | Array<JsonRpcPayload>): Promise<Array<JsonRpcResult>> {
+    override async _send(
+        payload: JsonRpcPayload | Array<JsonRpcPayload>,
+    ): Promise<Array<JsonRpcResult>> {
         const request = this._getConnection();
         request.body = JSON.stringify(payload);
         request.setHeader("content-type", "application/json");
@@ -535,7 +575,9 @@ export class Provider extends JsonRpcApiProvider(ethers.JsonRpcProvider) {
         response.assertOk();
 
         let resp = response.bodyJson;
-        if (!Array.isArray(resp)) { resp = [ resp ]; }
+        if (!Array.isArray(resp)) {
+            resp = [resp];
+        }
 
         return resp;
     }
@@ -579,8 +621,9 @@ export class BrowserProvider extends JsonRpcApiProvider(ethers.BrowserProvider) 
         };
     }
 
-
-    override async _send(payload: JsonRpcPayload | Array<JsonRpcPayload>): Promise<Array<JsonRpcResult | JsonRpcError>> {
+    override async _send(
+        payload: JsonRpcPayload | Array<JsonRpcPayload>,
+    ): Promise<Array<JsonRpcResult | JsonRpcError>> {
         ethers.assertArgument(
             !Array.isArray(payload),
             "EIP-1193 does not support batch request",

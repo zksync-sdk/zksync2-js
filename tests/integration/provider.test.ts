@@ -332,7 +332,6 @@ describe("Provider", () => {
                 data: utils.IERC20.encodeFunctionData("approve", [RECEIVER, 1]),
             });
             expect(result > 0).to.be.true;
-
         });
 
         // it("should return gas estimation of EIP712 transaction", async () => {

@@ -6,7 +6,13 @@ import {
     hashBytecode,
     serializeEip712,
 } from "./utils";
-import {Address, Signature, TransactionLike, TransactionRequest, TransactionResponse} from "./types";
+import {
+    Address,
+    Signature,
+    TransactionLike,
+    TransactionRequest,
+    TransactionResponse,
+} from "./types";
 import { AdapterL1, AdapterL2 } from "./adapters";
 
 export const eip712Types = {
