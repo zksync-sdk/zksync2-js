@@ -5,7 +5,9 @@ import {
     Interface,
     ethers,
     ContractRunner,
-    ContractTransaction, BaseContract, ContractTransactionResponse,
+    ContractTransaction,
+    BaseContract,
+    ContractTransactionResponse,
 } from "ethers";
 import {
     hashBytecode,
@@ -36,14 +38,27 @@ export class ContractFactory extends ethers.ContractFactory {
         bytecodeHash: BytesLike,
         constructorCalldata: BytesLike,
     ): string {
-        if (this.deploymentType == "create") {
+        if (this.deploymentType === "create") {
             return CONTRACT_DEPLOYER.encodeFunctionData("create", [
                 salt,
                 bytecodeHash,
                 constructorCalldata,
             ]);
-        } else if (this.deploymentType == "createAccount") {
+        } else if (this.deploymentType === "createAccount") {
             return CONTRACT_DEPLOYER.encodeFunctionData("createAccount", [
+                salt,
+                bytecodeHash,
+                constructorCalldata,
+                AccountAbstractionVersion.Version1,
+            ]);
+        } else if (this.deploymentType === "create2") {
+            return CONTRACT_DEPLOYER.encodeFunctionData("create2", [
+                salt,
+                bytecodeHash,
+                constructorCalldata,
+            ]);
+        } else if (this.deploymentType === "create2Account") {
+            return CONTRACT_DEPLOYER.encodeFunctionData("create2Account", [
                 salt,
                 bytecodeHash,
                 constructorCalldata,
@@ -55,19 +70,26 @@ export class ContractFactory extends ethers.ContractFactory {
     }
 
     override async getDeployTransaction(...args: any[]): Promise<ContractTransaction> {
-        // TODO (SMA-1585): Users should be able to provide the salt.
-        let salt = "0x0000000000000000000000000000000000000000000000000000000000000000";
+        let salt = ethers.ZeroHash;
+        let ars = args;
+        if (this.deploymentType === "create2" || this.deploymentType === "create2Account") {
+            salt = args[0] as string;
+            if (!salt.startsWith("0x") || salt.length !== 66) {
+                throw new Error("Invalid salt provided.");
+            }
+            ars = args.slice(1);
+        }
 
         // The overrides will be popped out in this call:
-        const txRequest = await super.getDeployTransaction(...args);
+        const txRequest = await super.getDeployTransaction(...ars);
         // Removing overrides
-        if (this.interface.deploy.inputs.length + 1 == args.length) {
-            args.pop();
+        if (this.interface.deploy.inputs.length + 1 == ars.length) {
+            ars.pop();
         }
 
         // Salt argument is not used, so we provide a placeholder value.
         const bytecodeHash = hashBytecode(this.bytecode);
-        const constructorCalldata = ethers.getBytes(this.interface.encodeDeploy(args));
+        const constructorCalldata = ethers.getBytes(this.interface.encodeDeploy(ars));
 
         const deployCalldata = this.encodeCalldata(salt, bytecodeHash, constructorCalldata);
 
@@ -92,8 +114,10 @@ export class ContractFactory extends ethers.ContractFactory {
 
     override async deploy(...args: Array<any>) {
         const contract = await super.deploy(...args);
-        // @ts-ignore
-        const deployTxReceipt = await this.runner?.provider?.getTransactionReceipt(contract.deploymentTransaction().hash) ;
+        const deployTxReceipt = await this.runner?.provider?.getTransactionReceipt(
+            // @ts-ignore
+            contract.deploymentTransaction().hash,
+        );
 
         // @ts-ignore
         const deployedAddresses = getDeployedContracts(deployTxReceipt).map(
@@ -104,7 +128,10 @@ export class ContractFactory extends ethers.ContractFactory {
             deployedAddresses[deployedAddresses.length - 1],
             contract.interface.fragments,
             contract.runner,
-        ) as BaseContract & { deploymentTransaction(): ContractTransactionResponse; } & Omit<BaseContract, keyof BaseContract>;
+        ) as BaseContract & { deploymentTransaction(): ContractTransactionResponse } & Omit<
+                BaseContract,
+                keyof BaseContract
+            >;
 
         // @ts-ignore
         contractWithCorrectAddress.deploymentTransaction = () =>

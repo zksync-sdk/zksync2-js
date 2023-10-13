@@ -557,8 +557,10 @@ export async function estimateDefaultBridgeDepositL2Gas(
             l2Value: amount,
         });
     } else {
-        const l1ERC20BridgeAddresses = (await providerL2.getDefaultBridgeAddresses()).erc20L1 as string;
-        const erc20BridgeAddress = (await providerL2.getDefaultBridgeAddresses()).erc20L2 as string;
+        const l1ERC20BridgeAddresses = (await providerL2.getDefaultBridgeAddresses())
+            .erc20L1 as string;
+        const erc20BridgeAddress = (await providerL2.getDefaultBridgeAddresses())
+            .erc20L2 as string;
         const bridgeData = await getERC20DefaultBridgeData(token, providerL1);
         return await estimateCustomBridgeDepositL2Gas(
             providerL2,

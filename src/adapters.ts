@@ -37,7 +37,8 @@ import {
     Address,
     BalancesMap,
     Eip712Meta,
-    FullDepositFee, MessageProof,
+    FullDepositFee,
+    MessageProof,
     PriorityOpResponse,
     TransactionResponse,
 } from "./types";
@@ -77,7 +78,6 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             }
             throw new Error("Default ERC20 L1 bridge contract not found!");
-
         }
 
         async getBalanceL1(token?: Address, blockTag?: BlockTag): Promise<bigint> {
@@ -142,7 +142,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }): Promise<bigint> {
             const zksyncContract = await this.getMainContract();
             const parameters = { ...layer1TxDefaults(), ...params };
-            parameters.gasPrice ??= (await this._providerL1().getFeeData()).gasPrice as BigNumberish;
+            parameters.gasPrice ??= (await this._providerL1().getFeeData())
+                .gasPrice as BigNumberish;
             parameters.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
 
             return await zksyncContract.l2TransactionBaseCost(
@@ -451,9 +452,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             if (tx.overrides.gasPrice) {
                 fullCost.gasPrice = BigInt(await tx.overrides.gasPrice);
             } else {
-                fullCost.maxFeePerGas = BigInt(await tx.overrides.maxFeePerGas as bigint);
+                fullCost.maxFeePerGas = BigInt((await tx.overrides.maxFeePerGas) as bigint);
                 fullCost.maxPriorityFeePerGas = BigInt(
-                    await tx.overrides.maxPriorityFeePerGas as bigint,
+                    (await tx.overrides.maxPriorityFeePerGas) as bigint,
                 );
             }
 
@@ -564,7 +565,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             // `getLogProof` is called not to get proof but
             // to get the index of the corresponding L2->L1 log,
             // which is returned as `proof.id`.
-            const proof = await this._providerL2().getLogProof(withdrawalHash, l2ToL1LogIndex) as MessageProof;
+            const proof = (await this._providerL2().getLogProof(
+                withdrawalHash,
+                l2ToL1LogIndex,
+            )) as MessageProof;
             if (!proof) {
                 throw new Error("Log proof not found!");
             }
@@ -573,7 +577,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 const contractAddress = await this._providerL2().getMainContractAddress();
                 const zksync = IZkSync__factory.connect(contractAddress, this._signerL1());
 
-                return await zksync.isEthWithdrawalFinalized(log.l1BatchNumber as BigNumberish, proof.id);
+                return await zksync.isEthWithdrawalFinalized(
+                    log.l1BatchNumber as BigNumberish,
+                    proof.id,
+                );
             }
 
             const l2Bridge = IL2Bridge__factory.connect(sender, this._providerL2());
@@ -582,7 +589,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 this._providerL1(),
             );
 
-            return await l1Bridge.isWithdrawalFinalized(log.l1BatchNumber as BigNumberish, proof.id);
+            return await l1Bridge.isWithdrawalFinalized(
+                log.l1BatchNumber as BigNumberish,
+                proof.id,
+            );
         }
 
         async claimFailedDeposit(depositHash: BytesLike, overrides?: ethers.Overrides) {
@@ -708,7 +718,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const gasPriceForEstimation = overrides.maxFeePerGas || overrides.gasPrice;
 
             const baseCost = await this.getBaseCost({
-                gasPrice: await gasPriceForEstimation as BigNumberish,
+                gasPrice: (await gasPriceForEstimation) as BigNumberish,
                 gasPerPubdataByte,
                 gasLimit: l2GasLimit,
             });
