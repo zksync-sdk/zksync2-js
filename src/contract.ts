@@ -69,29 +69,75 @@ export class ContractFactory extends ethers.ContractFactory {
         }
     }
 
-    override async getDeployTransaction(...args: any[]): Promise<ContractTransaction> {
-        let salt = ethers.ZeroHash;
-        let ars = args;
-        if (this.deploymentType === "create2" || this.deploymentType === "create2Account") {
-            salt = args[0] as string;
-            if (!salt.startsWith("0x") || salt.length !== 66) {
-                throw new Error("Invalid salt provided.");
+    protected prepareDeploymentArgs(args: any[]): {
+        constructorArgs: any[],
+        customData: { dependencies: BytesLike[], salt: BytesLike }
+    } {
+        let constructorArgs: any[] = [];
+        let customData: { dependencies: BytesLike[], salt: BytesLike } = {
+            dependencies: [],
+            salt: ethers.ZeroHash
+        };
+
+        if (typeof args[0] === 'object' && ('dependencies' in args[0] || 'salt' in args[0])) {
+            const options = args[0];
+
+            if (options.dependencies) {
+                if (Array.isArray(options.dependencies)) {
+                    customData.dependencies = options.dependencies.map((dep: BytesLike) => dep);
+                    constructorArgs = args.slice(1);
+                } else {
+                    throw new Error("Invalid 'dependencies' format. It should be an array of bytecodes.");
+                }
+
+                if (this.deploymentType === "create2" || this.deploymentType === "create2Account") {
+                    if (options.salt) {
+                        if (!options.salt.startsWith("0x") || options.salt.length !== 66) {
+                            throw new Error("Invalid salt provided.");
+                        }
+                        customData.salt = options.salt;
+                    } else {
+                        throw new Error("Salt is required for CREATE2 deployment.");
+                    }
+                }
+            } else if (this.deploymentType === "create2" || this.deploymentType === "create2Account") {
+                if (options.salt) {
+                    if (!options.salt.startsWith("0x") || options.salt.length !== 66) {
+                        throw new Error("Invalid salt provided.");
+                    }
+                    customData.salt = options.salt;
+                    constructorArgs = args.slice(1);
+                } else {
+                    throw new Error("Salt is required for CREATE2 deployment.");
+                }
+            } else {
+                throw new Error("Invalid deployment options for the chosen deployment type.");
             }
-            ars = args.slice(1);
+        } else if((this.deploymentType === "create2" || this.deploymentType === "create2Account") &&
+            !(typeof args[0] === 'object' && 'salt' in args[0])) {
+            throw new Error("Salt is required for CREATE2 deployment.");
+        } else {
+            constructorArgs = args;
         }
+
+        return { constructorArgs, customData };
+    }
+
+
+
+    override async getDeployTransaction(...args: any[]): Promise<ContractTransaction> {
+        const {constructorArgs, customData} = this.prepareDeploymentArgs(args);
 
         // The overrides will be popped out in this call:
-        const txRequest = await super.getDeployTransaction(...ars);
+        const txRequest = await super.getDeployTransaction(...constructorArgs);
         // Removing overrides
-        if (this.interface.deploy.inputs.length + 1 == ars.length) {
-            ars.pop();
+        if (this.interface.deploy.inputs.length + 1 == constructorArgs.length) {
+            constructorArgs.pop();
         }
 
-        // Salt argument is not used, so we provide a placeholder value.
         const bytecodeHash = hashBytecode(this.bytecode);
-        const constructorCalldata = ethers.getBytes(this.interface.encodeDeploy(ars));
-
-        const deployCalldata = this.encodeCalldata(salt, bytecodeHash, constructorCalldata);
+        const constructorCalldata = ethers.getBytes(this.interface.encodeDeploy(constructorArgs));
+        const deployCalldata = this.encodeCalldata(customData.salt, bytecodeHash, constructorCalldata);
 
         const tx = {
             ...txRequest,
@@ -101,7 +147,7 @@ export class ContractFactory extends ethers.ContractFactory {
         };
 
         tx.customData ??= {};
-        tx.customData.factoryDeps ??= [];
+        tx.customData.factoryDeps ??= customData.dependencies;
         tx.customData.gasPerPubdata ??= DEFAULT_GAS_PER_PUBDATA_LIMIT;
 
         // The number of factory deps is relatively low, so it is efficient enough.
