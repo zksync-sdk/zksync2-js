@@ -12,7 +12,7 @@
         "preserveWatchOutput": true,
 
         "noImplicitOverride": true,
-        "strict": true
+
     },
     "files": ["./src/index.ts"]
 }
