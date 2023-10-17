@@ -11,8 +11,7 @@
         "preserveSymlinks": true,
         "preserveWatchOutput": true,
 
-        "noImplicitOverride": true,
-
+        "noImplicitOverride": true
     },
     "files": ["./src/index.ts"]
 }
