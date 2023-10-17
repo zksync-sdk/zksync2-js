@@ -252,7 +252,7 @@ export function hashBytecode(bytecode: ethers.BytesLike): Uint8Array {
 
     // The bytecode should always take the first 2 bytes of the bytecode hash,
     // so we pad it from the left in case the length is smaller than 2 bytes.
-    const bytecodeLengthPadded = ethers.getBytes(ethers.zeroPadBytes(bytecodeLength, 2));
+    const bytecodeLengthPadded = ethers.getBytes(ethers.zeroPadValue(bytecodeLength, 2));
 
     const codeHashVersion = new Uint8Array([1, 0]);
     hash.set(codeHashVersion, 0);
