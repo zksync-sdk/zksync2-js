@@ -28,10 +28,10 @@
     "dependencies": {},
     "devDependencies": {
         "@typechain/ethers-v6": "^0.5.0",
-        "@types/chai": "^4.3.5",
+        "@types/chai": "^4.3.9",
         "@types/mocha": "^10.0.1",
         "@types/node": "^20.5.2",
-        "chai": "^4.3.7",
+        "chai": "^4.3.10",
         "ethers": "^6.7.1",
         "mocha": "^10.2.0",
         "ncp": "^2.0.0",
