@@ -38,31 +38,24 @@ export class ContractFactory extends ethers.ContractFactory {
         bytecodeHash: BytesLike,
         constructorCalldata: BytesLike,
     ): string {
+        const contractDeploymentArgs = [salt, bytecodeHash, constructorCalldata];
+        const accountDeploymentArgs = [
+            ...contractDeploymentArgs,
+            AccountAbstractionVersion.Version1,
+        ];
         if (this.deploymentType === "create") {
-            return CONTRACT_DEPLOYER.encodeFunctionData("create", [
-                salt,
-                bytecodeHash,
-                constructorCalldata,
-            ]);
+            return CONTRACT_DEPLOYER.encodeFunctionData("create", [...contractDeploymentArgs]);
         } else if (this.deploymentType === "createAccount") {
             return CONTRACT_DEPLOYER.encodeFunctionData("createAccount", [
-                salt,
-                bytecodeHash,
-                constructorCalldata,
-                AccountAbstractionVersion.Version1,
+                ...accountDeploymentArgs,
             ]);
         } else if (this.deploymentType === "create2") {
             return CONTRACT_DEPLOYER.encodeFunctionData("create2", [
-                salt,
-                bytecodeHash,
-                constructorCalldata,
+                ...contractDeploymentArgs,
             ]);
         } else if (this.deploymentType === "create2Account") {
             return CONTRACT_DEPLOYER.encodeFunctionData("create2Account", [
-                salt,
-                bytecodeHash,
-                constructorCalldata,
-                AccountAbstractionVersion.Version1,
+                ...accountDeploymentArgs,
             ]);
         } else {
             throw new Error(`Unsupported deployment type ${this.deploymentType}`);
