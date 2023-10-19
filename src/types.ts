@@ -110,10 +110,7 @@ export class TransactionResponse extends ethers.TransactionResponse {
     }
 
     override replaceableTransaction(startBlock: number): TransactionResponse {
-        return new TransactionResponse(
-            super.replaceableTransaction(startBlock),
-            this.provider,
-        );
+        return new TransactionResponse(super.replaceableTransaction(startBlock), this.provider);
     }
 
     override async getBlock(): Promise<Block> {
@@ -295,8 +292,7 @@ export class Transaction extends ethers.Transaction {
             if (tx.nonce != null) result.nonce = tx.nonce;
             if (tx.gasLimit != null) result.gasLimit = tx.gasLimit;
             if (tx.gasPrice != null) result.gasPrice = tx.gasPrice;
-            if (tx.maxPriorityFeePerGas != null)
-                result.maxPriorityFeePerGas = tx.maxPriorityFeePerGas;
+            if (tx.maxPriorityFeePerGas != null) result.maxPriorityFeePerGas = tx.maxPriorityFeePerGas;
             if (tx.maxFeePerGas != null) result.maxFeePerGas = tx.maxFeePerGas;
             if (tx.data != null) result.data = tx.data;
             if (tx.value != null) result.value = tx.value;
@@ -305,12 +301,7 @@ export class Transaction extends ethers.Transaction {
             if (tx.accessList != null) result.accessList = tx.accessList;
 
             if (tx.from != null) {
-                assertArgument(
-                    result.isSigned(),
-                    "unsigned transaction cannot define from",
-                    "tx",
-                    tx,
-                );
+                assertArgument(result.isSigned(), "unsigned transaction cannot define from", "tx", tx);
                 assertArgument(
                     result.from.toLowerCase() === (tx.from || "").toLowerCase(),
                     "from mismatch",
@@ -320,12 +311,7 @@ export class Transaction extends ethers.Transaction {
             }
 
             if (tx.hash != null) {
-                assertArgument(
-                    result.isSigned(),
-                    "unsigned transaction cannot define hash",
-                    "tx",
-                    tx,
-                );
+                assertArgument(result.isSigned(), "unsigned transaction cannot define hash", "tx", tx);
                 assertArgument(result.hash === tx.hash, "hash mismatch", "tx", tx);
             }
 

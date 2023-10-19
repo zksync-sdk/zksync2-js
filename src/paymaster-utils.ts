@@ -10,9 +10,7 @@ import {
 
 export const IPaymasterFlow = new ethers.Interface(require("../abi/IPaymasterFlow.json").abi);
 
-export function getApprovalBasedPaymasterInput(
-    paymasterInput: ApprovalBasedPaymasterInput,
-): BytesLike {
+export function getApprovalBasedPaymasterInput(paymasterInput: ApprovalBasedPaymasterInput): BytesLike {
     return IPaymasterFlow.encodeFunctionData("approvalBased", [
         paymasterInput.token,
         paymasterInput.minimalAllowance,

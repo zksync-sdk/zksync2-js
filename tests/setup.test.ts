@@ -14,9 +14,7 @@ describe("setup", () => {
     const wallet = new Wallet(PRIVATE_KEY, provider, ethProvider);
 
     it("deploy DAI token on L2 if not exists using deposit", async () => {
-        const l2DAI = await provider.getCode(
-            await provider.l2TokenAddress(TOKENS.DAI.address),
-        );
+        const l2DAI = await provider.getCode(await provider.l2TokenAddress(TOKENS.DAI.address));
         if (l2DAI === "0x") {
             const priorityOpResponse = await wallet.deposit({
                 token: TOKENS.DAI.address,

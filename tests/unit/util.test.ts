@@ -6,9 +6,7 @@ describe("utils", () => {
         it("should return the L2 contract address based on provided L1 contract address", async () => {
             const l1ContractAddress = "0x702942B8205E5dEdCD3374E5f4419843adA76Eeb";
             const l2ContractAddress = utils.applyL1ToL2Alias(l1ContractAddress);
-            expect(l2ContractAddress).not.to.be.equal(
-                "0x813A42B8205E5DedCd3374e5f4419843ADa77FFC",
-            );
+            expect(l2ContractAddress).not.to.be.equal("0x813A42B8205E5DedCd3374e5f4419843ADa77FFC");
         });
     });
 
@@ -16,9 +14,7 @@ describe("utils", () => {
         it("should return the L1 contract address based on provided L2 contract address", async () => {
             const l2ContractAddress = "0x813A42B8205E5DedCd3374e5f4419843ADa77FFC";
             const l1ContractAddress = utils.undoL1ToL2Alias(l2ContractAddress);
-            expect(l2ContractAddress).not.to.be.equal(
-                "0x702942B8205E5dEdCD3374E5f4419843adA76Eeb",
-            );
+            expect(l2ContractAddress).not.to.be.equal("0x702942B8205E5dEdCD3374E5f4419843adA76Eeb");
         });
     });
 
@@ -29,8 +25,8 @@ describe("utils", () => {
             const hashedBytecode = utils.hashBytecode(bytecode);
             expect(hashedBytecode).to.be.deep.equal(
                 new Uint8Array([
-                    1, 0, 0, 27, 57, 231, 154, 55, 0, 164, 201, 96, 244, 120, 23, 112, 54, 34,
-                    224, 133, 160, 122, 88, 164, 112, 80, 0, 134, 48, 138, 74, 16,
+                    1, 0, 0, 27, 57, 231, 154, 55, 0, 164, 201, 96, 244, 120, 23, 112, 54, 34, 224, 133,
+                    160, 122, 88, 164, 112, 80, 0, 134, 48, 138, 74, 16,
                 ]),
             );
         });
@@ -41,8 +37,8 @@ describe("utils", () => {
             const hashedBytecode = utils.hashBytecode(bytecode);
             expect(hashedBytecode).to.be.deep.equal(
                 new Uint8Array([
-                    1, 0, 1, 203, 106, 110, 141, 95, 104, 41, 82, 47, 25, 250, 149, 104, 102,
-                    14, 10, 156, 213, 59, 46, 139, 228, 222, 176, 166, 121, 69, 46, 65,
+                    1, 0, 1, 203, 106, 110, 141, 95, 104, 41, 82, 47, 25, 250, 149, 104, 102, 14, 10,
+                    156, 213, 59, 46, 139, 228, 222, 176, 166, 121, 69, 46, 65,
                 ]),
             );
         });

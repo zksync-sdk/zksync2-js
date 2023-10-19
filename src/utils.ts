@@ -18,9 +18,7 @@ export * from "./paymaster-utils";
 export const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 
 export const ZKSYNC_MAIN_ABI = new ethers.Interface(require("../abi/IZkSync.json").abi);
-export const CONTRACT_DEPLOYER = new ethers.Interface(
-    require("../abi/ContractDeployer.json").abi,
-);
+export const CONTRACT_DEPLOYER = new ethers.Interface(require("../abi/ContractDeployer.json").abi);
 export const L1_MESSENGER = new ethers.Interface(require("../abi/IL1Messenger.json").abi);
 export const IERC20 = new ethers.Interface(require("../abi/IERC20.json").abi);
 export const IERC1271 = new ethers.Interface(require("../abi/IERC1271.json").abi);
@@ -99,13 +97,9 @@ export function getDeployedContracts(receipt: ethers.TransactionReceipt): Deploy
             )
             // Take the last topic (deployed contract address as U256) and extract address from it (U160).
             .map((log) => {
-                const sender = `0x${log.topics[1].slice(
-                    log.topics[1].length - addressBytesLen,
-                )}`;
+                const sender = `0x${log.topics[1].slice(log.topics[1].length - addressBytesLen)}`;
                 const bytesCodehash = log.topics[2];
-                const address = `0x${log.topics[3].slice(
-                    log.topics[3].length - addressBytesLen,
-                )}`;
+                const address = `0x${log.topics[3].slice(log.topics[3].length - addressBytesLen)}`;
                 return {
                     sender: ethers.getAddress(sender),
                     bytecodeHash: bytesCodehash,
@@ -125,13 +119,7 @@ export function create2Address(
     const inputHash = ethers.keccak256(input);
     const addressBytes = ethers
         .keccak256(
-            ethers.concat([
-                prefix,
-                ethers.zeroPadBytes(sender, 32),
-                salt,
-                bytecodeHash,
-                inputHash,
-            ]),
+            ethers.concat([prefix, ethers.zeroPadBytes(sender, 32), salt, bytecodeHash, inputHash]),
         )
         .slice(26);
     return ethers.getAddress(addressBytes);
@@ -164,18 +152,13 @@ export async function checkBaseCost(
     }
 }
 
-export function serializeEip712(
-    transaction: TransactionLike,
-    signature?: ethers.SignatureLike,
-): string {
+export function serializeEip712(transaction: TransactionLike, signature?: ethers.SignatureLike): string {
     if (!transaction.chainId) {
         throw Error("Transaction chainId isn't set");
     }
 
     if (!transaction.from) {
-        throw new Error(
-            "Explicitly providing `from` field is required for EIP712 transactions",
-        );
+        throw new Error("Explicitly providing `from` field is required for EIP712 transactions");
     }
     const from = transaction.from;
     const meta: Eip712Meta = transaction.customData ?? {};
@@ -328,11 +311,7 @@ export function parseEip712(payload: ethers.BytesLike): TransactionLike {
         return transaction;
     }
 
-    if (
-        ethSignature.v !== 0 &&
-        ethSignature.v !== 1 &&
-        !transaction.customData?.customSignature
-    ) {
+    if (ethSignature.v !== 0 && ethSignature.v !== 1 && !transaction.customData?.customSignature) {
         throw new Error("Failed to parse signature");
     }
 
@@ -346,10 +325,7 @@ export function parseEip712(payload: ethers.BytesLike): TransactionLike {
 }
 
 function getSignature(transaction: any, ethSignature?: EthereumSignature): Uint8Array {
-    if (
-        transaction?.customData?.customSignature &&
-        transaction.customData.customSignature.length
-    ) {
+    if (transaction?.customData?.customSignature && transaction.customData.customSignature.length) {
         return ethers.getBytes(transaction.customData.customSignature);
     }
 
@@ -458,11 +434,7 @@ export async function getERC20BridgeCalldata(
 //
 // It will also pave the road for allowing future EIP-1271 signature verification, by
 // letting our SDK have functionality to verify signatures.
-function isECDSASignatureCorrect(
-    address: string,
-    msgHash: string,
-    signature: SignatureLike,
-): boolean {
+function isECDSASignatureCorrect(address: string, msgHash: string, signature: SignatureLike): boolean {
     try {
         return address == ethers.recoverAddress(msgHash, signature);
     } catch {
@@ -557,10 +529,8 @@ export async function estimateDefaultBridgeDepositL2Gas(
             l2Value: amount,
         });
     } else {
-        const l1ERC20BridgeAddresses = (await providerL2.getDefaultBridgeAddresses())
-            .erc20L1 as string;
-        const erc20BridgeAddress = (await providerL2.getDefaultBridgeAddresses())
-            .erc20L2 as string;
+        const l1ERC20BridgeAddresses = (await providerL2.getDefaultBridgeAddresses()).erc20L1 as string;
+        const erc20BridgeAddress = (await providerL2.getDefaultBridgeAddresses()).erc20L2 as string;
         const bridgeData = await getERC20DefaultBridgeData(token, providerL1);
         return await estimateCustomBridgeDepositL2Gas(
             providerL2,

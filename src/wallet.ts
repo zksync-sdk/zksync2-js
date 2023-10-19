@@ -57,10 +57,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         return new Wallet(wallet.signingKey);
     }
 
-    static override fromEncryptedJsonSync(
-        json: string,
-        password: string | Uint8Array,
-    ): Wallet {
+    static override fromEncryptedJsonSync(json: string, password: string | Uint8Array): Wallet {
         const wallet = super.fromEncryptedJsonSync(json, password);
         return new Wallet(wallet.signingKey);
     }
@@ -83,9 +80,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         this.providerL1 = providerL1;
     }
 
-    override async populateTransaction(
-        transaction: TransactionRequest,
-    ): Promise<TransactionLike> {
+    override async populateTransaction(transaction: TransactionRequest): Promise<TransactionLike> {
         if (transaction.type == null && transaction.customData == null) {
             // use legacy txs by default
             transaction.type = 0;
@@ -126,8 +121,6 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
 
     override async sendTransaction(tx: TransactionRequest): Promise<TransactionResponse> {
         const populatedTx = await this.populateTransaction(tx);
-        return await this.provider.broadcastTransaction(
-            await this.signTransaction(populatedTx),
-        );
+        return await this.provider.broadcastTransaction(await this.signTransaction(populatedTx));
     }
 }

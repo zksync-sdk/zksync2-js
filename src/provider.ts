@@ -50,12 +50,7 @@ import {
 } from "./utils";
 import { Signer } from "./signer";
 
-import {
-    formatLog,
-    formatBlock,
-    formatTransactionResponse,
-    formatTransactionReceipt,
-} from "./format";
+import { formatLog, formatBlock, formatTransactionResponse, formatTransactionReceipt } from "./format";
 
 type Constructor<T = {}> = new (...args: any[]) => T;
 
@@ -93,27 +88,19 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             return new Block(super._wrapBlock(block, network), this);
         }
 
-        override _wrapTransactionResponse(
-            value: any,
-            network: ethers.Network,
-        ): TransactionResponse {
+        override _wrapTransactionResponse(value: any, network: ethers.Network): TransactionResponse {
             const tx: any = formatTransactionResponse(value);
             return new TransactionResponse(super._wrapTransactionResponse(tx, network), this);
         }
 
-        override _wrapTransactionReceipt(
-            value: any,
-            network: ethers.Network,
-        ): TransactionReceipt {
+        override _wrapTransactionReceipt(value: any, network: ethers.Network): TransactionReceipt {
             const receipt: any = formatTransactionReceipt(value);
             return new TransactionReceipt(receipt, this);
         }
 
         override async getTransactionReceipt(txHash: string): Promise<TransactionReceipt> {
             while (true) {
-                const receipt = (await super.getTransactionReceipt(
-                    txHash,
-                )) as TransactionReceipt;
+                const receipt = (await super.getTransactionReceipt(txHash)) as TransactionReceipt;
                 if (receipt.blockNumber) {
                     return receipt;
                 }
@@ -125,10 +112,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             return (await super.getTransaction(txHash)) as TransactionResponse;
         }
 
-        override async getBlock(
-            blockHashOrBlockTag: BlockTag,
-            includeTxs?: boolean,
-        ): Promise<Block> {
+        override async getBlock(blockHashOrBlockTag: BlockTag, includeTxs?: boolean): Promise<Block> {
             return (await super.getBlock(blockHashOrBlockTag, includeTxs)) as Block;
         }
 
@@ -175,9 +159,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
         }
 
         async estimateGasL1(transaction: TransactionRequest): Promise<bigint> {
-            return await this.send("zks_estimateGasL1ToL2", [
-                this.getRpcTransaction(transaction),
-            ]);
+            return await this.send("zks_estimateGasL1ToL2", [this.getRpcTransaction(transaction)]);
         }
 
         async estimateFee(transaction: TransactionRequest): Promise<Fee> {
@@ -203,10 +185,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
 
         async getMainContractAddress(): Promise<Address> {
             if (!this.contractAddresses.mainContract) {
-                this.contractAddresses.mainContract = await this.send(
-                    "zks_getMainContract",
-                    [],
-                );
+                this.contractAddresses.mainContract = await this.send("zks_getMainContract", []);
             }
             return this.contractAddresses.mainContract!;
         }
@@ -344,11 +323,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
                 };
             } else {
                 const token = IERC20__factory.connect(tx.token, this);
-                return await token.transfer.populateTransaction(
-                    tx.to,
-                    tx.amount,
-                    tx.overrides,
-                );
+                return await token.transfer.populateTransaction(tx.to, tx.amount, tx.overrides);
             }
         }
 
@@ -417,9 +392,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
                 throw new Error("@TODO: the returned hash did not match");
             }
 
-            return this._wrapTransactionResponse(<any>tx, network).replaceableTransaction(
-                blockNumber,
-            );
+            return this._wrapTransactionResponse(<any>tx, network).replaceableTransaction(blockNumber);
         }
 
         async getL2TransactionFromPriorityOp(
@@ -515,11 +488,10 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
                 gasPerPubdata: ethers.toBeHex(tx.customData.gasPerPubdata ?? 0),
             } as any;
             if (tx.customData.factoryDeps) {
-                result.eip712Meta.factoryDeps = tx.customData.factoryDeps.map(
-                    (dep: ethers.BytesLike) =>
-                        // TODO (SMA-1605): we arraify instead of hexlifying because server expects Vec<u8>.
-                        //  We should change deserialization there.
-                        Array.from(ethers.getBytes(dep)),
+                result.eip712Meta.factoryDeps = tx.customData.factoryDeps.map((dep: ethers.BytesLike) =>
+                    // TODO (SMA-1605): we arraify instead of hexlifying because server expects Vec<u8>.
+                    //  We should change deserialization there.
+                    Array.from(ethers.getBytes(dep)),
                 );
             }
             if (tx.customData.paymasterParams) {

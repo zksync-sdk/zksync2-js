@@ -1,18 +1,7 @@
 import { ethers } from "ethers";
 import { Provider } from "./provider";
-import {
-    DEFAULT_GAS_PER_PUBDATA_LIMIT,
-    EIP712_TX_TYPE,
-    hashBytecode,
-    serializeEip712,
-} from "./utils";
-import {
-    Address,
-    Signature,
-    TransactionLike,
-    TransactionRequest,
-    TransactionResponse,
-} from "./types";
+import { DEFAULT_GAS_PER_PUBDATA_LIMIT, EIP712_TX_TYPE, hashBytecode, serializeEip712 } from "./utils";
+import { Address, Signature, TransactionLike, TransactionRequest, TransactionResponse } from "./types";
 import { AdapterL1, AdapterL2 } from "./adapters";
 
 export const eip712Types = {
@@ -59,14 +48,11 @@ export class EIP712Signer {
             gasPerPubdataByteLimit: gasPerPubdataByteLimit,
             maxFeePerGas,
             maxPriorityFeePerGas,
-            paymaster:
-                transaction.customData?.paymasterParams?.paymaster || ethers.ZeroAddress,
+            paymaster: transaction.customData?.paymasterParams?.paymaster || ethers.ZeroAddress,
             nonce: transaction.nonce,
             value: transaction.value,
             data: transaction.data,
-            factoryDeps:
-                transaction.customData?.factoryDeps?.map((dep: any) => hashBytecode(dep)) ||
-                [],
+            factoryDeps: transaction.customData?.factoryDeps?.map((dep: any) => hashBytecode(dep)) || [],
             paymasterInput: transaction.customData?.paymasterParams?.paymasterInput || "0x",
         };
     }
@@ -88,11 +74,7 @@ export class EIP712Signer {
             version: "2",
             chainId: transaction.chainId,
         };
-        return ethers.TypedDataEncoder.hash(
-            domain,
-            eip712Types,
-            EIP712Signer.getSignInput(transaction),
-        );
+        return ethers.TypedDataEncoder.hash(domain, eip712Types, EIP712Signer.getSignInput(transaction));
     }
 }
 
@@ -116,18 +98,13 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
         return this.provider;
     }
 
-    static from(
-        signer: ethers.JsonRpcSigner & { provider: Provider },
-        chainId: number,
-    ): Signer {
+    static from(signer: ethers.JsonRpcSigner & { provider: Provider }, chainId: number): Signer {
         const newSigner: Signer = Object.setPrototypeOf(signer, Signer.prototype);
         newSigner.eip712 = new EIP712Signer(newSigner, chainId);
         return newSigner;
     }
 
-    override async sendTransaction(
-        transaction: TransactionRequest,
-    ): Promise<TransactionResponse> {
+    override async sendTransaction(transaction: TransactionRequest): Promise<TransactionResponse> {
         if (transaction.customData == null && transaction.type == null) {
             // use legacy txs by default
             transaction.type = 0;
@@ -146,8 +123,7 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
                 data: transaction.data ?? "0x",
                 nonce: transaction.nonce ?? (await this.getNonce()),
                 gasPrice: transaction.gasPrice ?? (await this.provider.getGasPrice()),
-                gasLimit:
-                    transaction.gasLimit ?? (await this.provider.estimateGas(transaction)),
+                gasLimit: transaction.gasLimit ?? (await this.provider.estimateGas(transaction)),
                 chainId: transaction.chainId ?? (await this.provider.getNetwork()).chainId,
                 to: await ethers.resolveAddress(transaction.to as Address),
                 customData: this._fillCustomData(transaction.customData ?? {}),
@@ -210,18 +186,13 @@ export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
         return this.provider;
     }
 
-    static from(
-        signer: ethers.VoidSigner & { provider: Provider },
-        chainId: number,
-    ): L2VoidSigner {
+    static from(signer: ethers.VoidSigner & { provider: Provider }, chainId: number): L2VoidSigner {
         const newSigner: L2VoidSigner = Object.setPrototypeOf(signer, L2VoidSigner.prototype);
         newSigner.eip712 = new EIP712Signer(newSigner, chainId);
         return newSigner;
     }
 
-    override async sendTransaction(
-        transaction: TransactionRequest,
-    ): Promise<TransactionResponse> {
+    override async sendTransaction(transaction: TransactionRequest): Promise<TransactionResponse> {
         if (transaction.customData == null && transaction.type == null) {
             // use legacy txs by default
             transaction.type = 0;
@@ -240,8 +211,7 @@ export class L2VoidSigner extends AdapterL2(ethers.VoidSigner) {
                 data: transaction.data ?? "0x",
                 nonce: transaction.nonce ?? (await this.getNonce()),
                 gasPrice: transaction.gasPrice ?? (await this.provider.getGasPrice()),
-                gasLimit:
-                    transaction.gasLimit ?? (await this.provider.estimateGas(transaction)),
+                gasLimit: transaction.gasLimit ?? (await this.provider.estimateGas(transaction)),
                 chainId: transaction.chainId ?? (await this.provider.getNetwork()).chainId,
                 to: await ethers.resolveAddress(transaction.to as Address),
                 customData: this._fillCustomData(transaction.customData ?? {}),
