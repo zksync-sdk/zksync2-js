@@ -36,27 +36,35 @@ export class ContractFactory extends ethers.ContractFactory {
         bytecodeHash: BytesLike,
         constructorCalldata: BytesLike,
     ) {
-        if (this.deploymentType == "create") {
-            return CONTRACT_DEPLOYER.encodeFunctionData("create", [
-                salt,
-                bytecodeHash,
-                constructorCalldata,
-            ]);
-        } else if (this.deploymentType == "createAccount") {
-            return CONTRACT_DEPLOYER.encodeFunctionData("createAccount", [
-                salt,
-                bytecodeHash,
-                constructorCalldata,
-                AccountAbstractionVersion.Version1,
-            ]);
-        } else {
+        const deploymentTypeMap = {
+            create: {
+                functionName: "create",
+                additionalArgs: [],
+            },
+            createAccount: {
+                functionName: "createAccount",
+                additionalArgs: [AccountAbstractionVersion.Version1],
+            },
+        };
+
+        const deploymentType = deploymentTypeMap[this.deploymentType];
+
+        if (!deploymentType) {
             throw new Error(`Unsupported deployment type ${this.deploymentType}`);
         }
+
+        const args = [
+            salt,
+            bytecodeHash,
+            constructorCalldata,
+            ...deploymentType.additionalArgs,
+        ];
+        return CONTRACT_DEPLOYER.encodeFunctionData(deploymentType.functionName, args);
     }
 
     override async getDeployTransaction(...args: any[]): Promise<ContractTransaction> {
         // TODO (SMA-1585): Users should be able to provide the salt.
-        let salt = "0x0000000000000000000000000000000000000000000000000000000000000000";
+        const salt = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
         // The overrides will be popped out in this call:
         const txRequest = await super.getDeployTransaction(...args);
