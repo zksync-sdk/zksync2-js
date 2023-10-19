@@ -39,24 +39,15 @@ export class ContractFactory extends ethers.ContractFactory {
         constructorCalldata: BytesLike,
     ): string {
         const contractDeploymentArgs = [salt, bytecodeHash, constructorCalldata];
-        const accountDeploymentArgs = [
-            ...contractDeploymentArgs,
-            AccountAbstractionVersion.Version1,
-        ];
+        const accountDeploymentArgs = [...contractDeploymentArgs, AccountAbstractionVersion.Version1];
         if (this.deploymentType === "create") {
             return CONTRACT_DEPLOYER.encodeFunctionData("create", [...contractDeploymentArgs]);
         } else if (this.deploymentType === "createAccount") {
-            return CONTRACT_DEPLOYER.encodeFunctionData("createAccount", [
-                ...accountDeploymentArgs,
-            ]);
+            return CONTRACT_DEPLOYER.encodeFunctionData("createAccount", [...accountDeploymentArgs]);
         } else if (this.deploymentType === "create2") {
-            return CONTRACT_DEPLOYER.encodeFunctionData("create2", [
-                ...contractDeploymentArgs,
-            ]);
+            return CONTRACT_DEPLOYER.encodeFunctionData("create2", [...contractDeploymentArgs]);
         } else if (this.deploymentType === "create2Account") {
-            return CONTRACT_DEPLOYER.encodeFunctionData("create2Account", [
-                ...accountDeploymentArgs,
-            ]);
+            return CONTRACT_DEPLOYER.encodeFunctionData("create2Account", [...accountDeploymentArgs]);
         } else {
             throw new Error(`Unsupported deployment type ${this.deploymentType}`);
         }
@@ -68,10 +59,7 @@ export class ContractFactory extends ethers.ContractFactory {
                 throw new Error("Salt is required for CREATE2 deployment.");
             }
 
-            if (
-                !overrides.customData.salt.startsWith("0x") ||
-                overrides.customData.salt.length !== 66
-            ) {
+            if (!overrides.customData.salt.startsWith("0x") || overrides.customData.salt.length !== 66) {
                 throw new Error("Invalid salt provided.");
             }
         }
@@ -81,9 +69,7 @@ export class ContractFactory extends ethers.ContractFactory {
             overrides.customData.factoryDeps &&
             !Array.isArray(overrides.customData.factoryDeps)
         ) {
-            throw new Error(
-                "Invalid 'factoryDeps' format. It should be an array of bytecodes.",
-            );
+            throw new Error("Invalid 'factoryDeps' format. It should be an array of bytecodes.");
         }
     }
 
@@ -104,9 +90,7 @@ export class ContractFactory extends ethers.ContractFactory {
         }
 
         const bytecodeHash = hashBytecode(this.bytecode);
-        const constructorCalldata = ethers.getBytes(
-            this.interface.encodeDeploy(constructorArgs),
-        );
+        const constructorCalldata = ethers.getBytes(this.interface.encodeDeploy(constructorArgs));
         const deployCalldata = this.encodeCalldata(
             overrides.customData.salt,
             bytecodeHash,
@@ -114,8 +98,7 @@ export class ContractFactory extends ethers.ContractFactory {
         );
 
         // salt is no longer used and should not be present in customData of EIP712 transaction
-        if (txRequest.customData && txRequest.customData.salt)
-            delete txRequest.customData.salt;
+        if (txRequest.customData && txRequest.customData.salt) delete txRequest.customData.salt;
         const tx = {
             ...txRequest,
             to: CONTRACT_DEPLOYER_ADDRESS,
@@ -157,8 +140,7 @@ export class ContractFactory extends ethers.ContractFactory {
             >;
 
         // @ts-ignore
-        contractWithCorrectAddress.deploymentTransaction = () =>
-            contract.deploymentTransaction();
+        contractWithCorrectAddress.deploymentTransaction = () => contract.deploymentTransaction();
         return contractWithCorrectAddress;
     }
 }

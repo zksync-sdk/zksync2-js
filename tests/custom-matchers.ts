@@ -3,10 +3,7 @@ import * as chai from "chai";
 declare global {
     namespace Chai {
         interface Assertion {
-            deepEqualExcluding(
-                expected: Record<string, any>,
-                excludeFields: string[],
-            ): Assertion;
+            deepEqualExcluding(expected: Record<string, any>, excludeFields: string[]): Assertion;
         }
     }
 }

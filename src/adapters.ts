@@ -142,8 +142,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }): Promise<bigint> {
             const zksyncContract = await this.getMainContract();
             const parameters = { ...layer1TxDefaults(), ...params };
-            parameters.gasPrice ??= (await this._providerL1().getFeeData())
-                .gasPrice as BigNumberish;
+            parameters.gasPrice ??= (await this._providerL1().getFeeData()).gasPrice as BigNumberish;
             parameters.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
 
             return await zksyncContract.l2TransactionBaseCost(
@@ -185,10 +184,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                         : await bridgeContracts.erc20.getAddress();
 
                     // We only request the allowance if the current one is not enough.
-                    const allowance = await this.getAllowanceL1(
-                        transaction.token,
-                        bridgeAddress,
-                    );
+                    const allowance = await this.getAllowanceL1(transaction.token, bridgeAddress);
                     if (allowance < BigInt(transaction.amount)) {
                         const approveTx = await this.approveERC20(
                             transaction.token,
@@ -316,23 +312,20 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.ZeroAddress;
-                const args: [
-                    Address,
-                    Address,
-                    BigNumberish,
-                    BigNumberish,
-                    BigNumberish,
-                    Address,
-                ] = [to, token, amount, tx.l2GasLimit, tx.gasPerPubdataByte, refundRecipient];
+                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address] = [
+                    to,
+                    token,
+                    amount,
+                    tx.l2GasLimit,
+                    tx.gasPerPubdataByte,
+                    refundRecipient,
+                ];
 
                 overrides.value ??= baseCost + BigInt(operatorTip);
                 await checkBaseCost(baseCost, overrides.value);
                 overrides.from ??= await this.getAddress();
 
-                return await bridgeContracts.erc20.deposit.populateTransaction(
-                    ...args,
-                    overrides,
-                );
+                return await bridgeContracts.erc20.deposit.populateTransaction(...args, overrides);
             }
         }
 
@@ -492,10 +485,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
         async finalizeWithdrawalParams(withdrawalHash: BytesLike, index: number = 0) {
             const { log, l1BatchTxId } = await this._getWithdrawalLog(withdrawalHash, index);
-            const { l2ToL1LogIndex } = await this._getWithdrawalL2ToL1Log(
-                withdrawalHash,
-                index,
-            );
+            const { l2ToL1LogIndex } = await this._getWithdrawalL2ToL1Log(withdrawalHash, index);
             const sender = ethers.dataSlice(log.topics[1], 12);
             const proof = await this._providerL2().getLogProof(withdrawalHash, l2ToL1LogIndex);
             if (!proof) {
@@ -517,14 +507,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             index: number = 0,
             overrides?: ethers.Overrides,
         ): Promise<ethers.ContractTransactionResponse> {
-            const {
-                l1BatchNumber,
-                l2MessageIndex,
-                l2TxNumberInBlock,
-                message,
-                sender,
-                proof,
-            } = await this.finalizeWithdrawalParams(withdrawalHash, index);
+            const { l1BatchNumber, l2MessageIndex, l2TxNumberInBlock, message, sender, proof } =
+                await this.finalizeWithdrawalParams(withdrawalHash, index);
 
             if (isETH(sender)) {
                 const contractAddress = await this._providerL2().getMainContractAddress();
@@ -541,10 +525,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             }
 
             const l2Bridge = IL2Bridge__factory.connect(sender, this._providerL2());
-            const l1Bridge = IL1Bridge__factory.connect(
-                await l2Bridge.l1Bridge(),
-                this._signerL1(),
-            );
+            const l1Bridge = IL1Bridge__factory.connect(await l2Bridge.l1Bridge(), this._signerL1());
             return await l1Bridge.finalizeWithdrawal(
                 l1BatchNumber as BigNumberish,
                 l2MessageIndex as BigNumberish,
@@ -557,10 +538,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
         async isWithdrawalFinalized(withdrawalHash: BytesLike, index: number = 0) {
             const { log } = await this._getWithdrawalLog(withdrawalHash, index);
-            const { l2ToL1LogIndex } = await this._getWithdrawalL2ToL1Log(
-                withdrawalHash,
-                index,
-            );
+            const { l2ToL1LogIndex } = await this._getWithdrawalL2ToL1Log(withdrawalHash, index);
             const sender = ethers.dataSlice(log.topics[1], 12);
             // `getLogProof` is called not to get proof but
             // to get the index of the corresponding L2->L1 log,
@@ -584,25 +562,16 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             }
 
             const l2Bridge = IL2Bridge__factory.connect(sender, this._providerL2());
-            const l1Bridge = IL1Bridge__factory.connect(
-                await l2Bridge.l1Bridge(),
-                this._providerL1(),
-            );
+            const l1Bridge = IL1Bridge__factory.connect(await l2Bridge.l1Bridge(), this._providerL1());
 
-            return await l1Bridge.isWithdrawalFinalized(
-                log.l1BatchNumber as BigNumberish,
-                proof.id,
-            );
+            return await l1Bridge.isWithdrawalFinalized(log.l1BatchNumber as BigNumberish, proof.id);
         }
 
         async claimFailedDeposit(depositHash: BytesLike, overrides?: ethers.Overrides) {
-            const receipt = await this._providerL2().getTransactionReceipt(
-                ethers.hexlify(depositHash),
-            );
+            const receipt = await this._providerL2().getTransactionReceipt(ethers.hexlify(depositHash));
             const successL2ToL1LogIndex = receipt.l2ToL1Logs.findIndex(
                 (l2ToL1log) =>
-                    l2ToL1log.sender == BOOTLOADER_FORMAL_ADDRESS &&
-                    l2ToL1log.key == depositHash,
+                    l2ToL1log.sender == BOOTLOADER_FORMAL_ADDRESS && l2ToL1log.key == depositHash,
             );
             const successL2ToL1Log = receipt.l2ToL1Logs[successL2ToL1LogIndex];
             if (successL2ToL1Log.value != ethers.ZeroHash) {
@@ -623,10 +592,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
             const calldata = l2Bridge.interface.decodeFunctionData("finalizeDeposit", tx.data);
 
-            const proof = await this._providerL2().getLogProof(
-                depositHash,
-                successL2ToL1LogIndex,
-            );
+            const proof = await this._providerL2().getLogProof(depositHash, successL2ToL1LogIndex);
             if (!proof) {
                 throw new Error("Log proof not found!");
             }
@@ -752,11 +718,7 @@ export function AdapterL2<TBase extends Constructor<TxSender>>(Base: TBase) {
         }
 
         async getBalance(token?: Address, blockTag: BlockTag = "committed"): Promise<bigint> {
-            return await this._providerL2().getBalance(
-                await this.getAddress(),
-                blockTag,
-                token,
-            );
+            return await this._providerL2().getBalance(await this.getAddress(), blockTag, token);
         }
 
         async getAllBalances(): Promise<BalancesMap> {
@@ -828,9 +790,7 @@ async function insertGasPrice(l1Provider: ethers.Provider, overrides: ethers.Ove
         }
 
         // Sometimes baseFeePerGas is not available, so we use gasPrice instead.
-        const baseFee = l1FeeData.maxFeePerGas
-            ? getBaseCostFromFeeData(l1FeeData)
-            : l1FeeData.gasPrice;
+        const baseFee = l1FeeData.maxFeePerGas ? getBaseCostFromFeeData(l1FeeData) : l1FeeData.gasPrice;
         if (!baseFee) {
             throw new Error("Failed to calculate base fee");
         }
