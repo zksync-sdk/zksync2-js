@@ -9,5 +9,6 @@ export { IEthToken__factory } from "./IEthToken__factory";
 export { IL1Bridge__factory } from "./IL1Bridge__factory";
 export { IL1Messenger__factory } from "./IL1Messenger__factory";
 export { IL2Bridge__factory } from "./IL2Bridge__factory";
+export { INonceHolder__factory } from "./INonceHolder__factory";
 export { IPaymasterFlow__factory } from "./IPaymasterFlow__factory";
 export { IZkSync__factory } from "./IZkSync__factory";

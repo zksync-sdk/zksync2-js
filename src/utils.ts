@@ -15,8 +15,6 @@ import { IERC20__factory } from "../typechain";
 
 export * from "./paymaster-utils";
 
-export const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 export const ZKSYNC_MAIN_ABI = new ethers.Interface(require("../abi/IZkSync.json").abi);
 export const CONTRACT_DEPLOYER = new ethers.Interface(require("../abi/ContractDeployer.json").abi);
 export const L1_MESSENGER = new ethers.Interface(require("../abi/IL1Messenger.json").abi);
@@ -24,11 +22,15 @@ export const IERC20 = new ethers.Interface(require("../abi/IERC20.json").abi);
 export const IERC1271 = new ethers.Interface(require("../abi/IERC1271.json").abi);
 export const L1_BRIDGE_ABI = new ethers.Interface(require("../abi/IL1Bridge.json").abi);
 export const L2_BRIDGE_ABI = new ethers.Interface(require("../abi/IL2Bridge.json").abi);
+export const NONCE_HOLDER_ABI = new ethers.Interface(require("../abi/INonceHolder.json").abi);
 
+
+export const ETH_ADDRESS = "0x0000000000000000000000000000000000000000";
 export const BOOTLOADER_FORMAL_ADDRESS = "0x0000000000000000000000000000000000008001";
 export const CONTRACT_DEPLOYER_ADDRESS = "0x0000000000000000000000000000000000008006";
 export const L1_MESSENGER_ADDRESS = "0x0000000000000000000000000000000000008008";
 export const L2_ETH_TOKEN_ADDRESS = "0x000000000000000000000000000000000000800a";
+export const NONCE_HOLDER_ADDRESS = "0x0000000000000000000000000000000000008003";
 
 export const L1_TO_L2_ALIAS_OFFSET = "0x1111000000000000000000000000000000001111";
 
