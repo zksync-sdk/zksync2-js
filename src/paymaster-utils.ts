@@ -1,4 +1,5 @@
 import { BytesLike, ethers } from "ethers";
+import {PAYMASTER_FLOW_ABI} from "./utils";
 
 import {
     Address,
@@ -8,10 +9,11 @@ import {
     PaymasterParams,
 } from "./types";
 
+/** @deprecated This ABI is here for backward compatibility - please use utils.PAYMASTER_FLOW_ABI instead */
 export const IPaymasterFlow = new ethers.Interface(require("../abi/IPaymasterFlow.json").abi);
 
 export function getApprovalBasedPaymasterInput(paymasterInput: ApprovalBasedPaymasterInput): BytesLike {
-    return IPaymasterFlow.encodeFunctionData("approvalBased", [
+    return PAYMASTER_FLOW_ABI.encodeFunctionData("approvalBased", [
         paymasterInput.token,
         paymasterInput.minimalAllowance,
         paymasterInput.innerInput,
@@ -19,7 +21,7 @@ export function getApprovalBasedPaymasterInput(paymasterInput: ApprovalBasedPaym
 }
 
 export function getGeneralPaymasterInput(paymasterInput: GeneralPaymasterInput): BytesLike {
-    return IPaymasterFlow.encodeFunctionData("general", [paymasterInput.innerInput]);
+    return PAYMASTER_FLOW_ABI.encodeFunctionData("general", [paymasterInput.innerInput]);
 }
 
 export function getPaymasterParams(
