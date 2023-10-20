@@ -23,14 +23,15 @@ import {
     REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
     scaleGasLimit,
     undoL1ToL2Alias,
-    NONCE_HOLDER_ADDRESS
+    NONCE_HOLDER_ADDRESS,
 } from "./utils";
 import {
     IERC20__factory,
     IL1Bridge,
     IL1Bridge__factory,
     IL2Bridge,
-    IL2Bridge__factory, INonceHolder__factory,
+    IL2Bridge__factory,
+    INonceHolder__factory,
     IZkSync,
     IZkSync__factory,
 } from "../typechain";
@@ -727,8 +728,10 @@ export function AdapterL2<TBase extends Constructor<TxSender>>(Base: TBase) {
         }
 
         async getDeploymentNonce(): Promise<bigint> {
-            return await INonceHolder__factory.connect(NONCE_HOLDER_ADDRESS, this._signerL2())
-                .getDeploymentNonce(await this.getAddress());
+            return await INonceHolder__factory.connect(
+                NONCE_HOLDER_ADDRESS,
+                this._signerL2(),
+            ).getDeploymentNonce(await this.getAddress());
         }
 
         async getL2BridgeContracts(): Promise<{ erc20: IL2Bridge }> {
