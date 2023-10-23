@@ -64,7 +64,7 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
             throw new Error("Must be implemented by the derived class!");
         }
 
-        get contractAddresses(): {
+        contractAddresses(): {
             mainContract?: Address;
             erc20BridgeL1?: Address;
             erc20BridgeL2?: Address;
@@ -184,10 +184,10 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
         }
 
         async getMainContractAddress(): Promise<Address> {
-            if (!this.contractAddresses.mainContract) {
-                this.contractAddresses.mainContract = await this.send("zks_getMainContract", []);
+            if (!this.contractAddresses().mainContract) {
+                this.contractAddresses().mainContract = await this.send("zks_getMainContract", []);
             }
-            return this.contractAddresses.mainContract!;
+            return this.contractAddresses().mainContract!;
         }
 
         async getTestnetPaymasterAddress(): Promise<Address | null> {
@@ -197,14 +197,14 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
         }
 
         async getDefaultBridgeAddresses() {
-            if (!this.contractAddresses.erc20BridgeL1) {
+            if (!this.contractAddresses().erc20BridgeL1) {
                 let addresses = await this.send("zks_getBridgeContracts", []);
-                this.contractAddresses.erc20BridgeL1 = addresses.l1Erc20DefaultBridge;
-                this.contractAddresses.erc20BridgeL2 = addresses.l2Erc20DefaultBridge;
+                this.contractAddresses().erc20BridgeL1 = addresses.l1Erc20DefaultBridge;
+                this.contractAddresses().erc20BridgeL2 = addresses.l2Erc20DefaultBridge;
             }
             return {
-                erc20L1: this.contractAddresses.erc20BridgeL1,
-                erc20L2: this.contractAddresses.erc20BridgeL2,
+                erc20L1: this.contractAddresses().erc20BridgeL1,
+                erc20L2: this.contractAddresses().erc20BridgeL2,
             };
         }
 
@@ -516,7 +516,7 @@ export class Provider extends JsonRpcApiProvider(ethers.JsonRpcProvider) {
         erc20BridgeL2?: Address;
     };
 
-    override get contractAddresses(): {
+    override contractAddresses(): {
         mainContract?: Address;
         erc20BridgeL1?: Address;
         erc20BridgeL2?: Address;
@@ -572,8 +572,24 @@ export class Provider extends JsonRpcApiProvider(ethers.JsonRpcProvider) {
 export class BrowserProvider extends JsonRpcApiProvider(ethers.BrowserProvider) {
     #request: (method: string, params: Array<any> | Record<string, any>) => Promise<any>;
 
+    protected _contractAddresses: {
+        mainContract?: Address;
+        erc20BridgeL1?: Address;
+        erc20BridgeL2?: Address;
+    };
+
+    override contractAddresses(): {
+        mainContract?: Address;
+        erc20BridgeL1?: Address;
+        erc20BridgeL2?: Address;
+    } {
+        return this._contractAddresses;
+    }
+
+
     constructor(ethereum: Eip1193Provider, network?: Networkish) {
         super(ethereum, network);
+        this._contractAddresses = {};
 
         this.#request = async (method: string, params: Array<any> | Record<string, any>) => {
             const payload = { method, params };
