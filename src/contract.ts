@@ -84,7 +84,12 @@ export class ContractFactory extends ethers.ContractFactory {
         if (this.interface.deploy.inputs.length + 1 == args.length) {
             constructorArgs = args.slice(0, args.length - 1);
             overrides = args[args.length - 1] as ethers.Overrides;
+            overrides.customData ??= {};
+            overrides.customData.salt ??= ethers.ZeroHash;
             this.checkOverrides(overrides);
+            overrides.customData.factoryDeps = (overrides.customData.factoryDeps ?? []).map(
+                normalizeBytecode,
+            );
         } else {
             constructorArgs = args;
         }
@@ -107,7 +112,7 @@ export class ContractFactory extends ethers.ContractFactory {
         };
 
         tx.customData ??= {};
-        tx.customData.factoryDeps ??= overrides.customData.factoryDeps;
+        tx.customData.factoryDeps ??= overrides.customData.factoryDeps || [];
         tx.customData.gasPerPubdata ??= DEFAULT_GAS_PER_PUBDATA_LIMIT;
 
         // The number of factory deps is relatively low, so it is efficient enough.
@@ -186,4 +191,21 @@ export class ContractFactory extends ethers.ContractFactory {
         contractWithCorrectAddress.deploymentTransaction = () => contract.deploymentTransaction();
         return contractWithCorrectAddress;
     }
+}
+
+function normalizeBytecode(bytecode: BytesLike | { object: string }) {
+    // Dereference Solidity bytecode objects and allow a missing `0x`-prefix
+    if (bytecode instanceof Uint8Array) {
+        bytecode = ethers.hexlify(ethers.getBytes(bytecode));
+    } else {
+        if (typeof bytecode === "object") {
+            bytecode = bytecode.object;
+        }
+        if (!bytecode.startsWith("0x")) {
+            bytecode = "0x" + bytecode;
+        }
+        bytecode = ethers.hexlify(ethers.getBytes(bytecode));
+    }
+
+    return bytecode;
 }
