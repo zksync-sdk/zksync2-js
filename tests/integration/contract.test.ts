@@ -14,6 +14,7 @@ describe("ContractFactory", () => {
 
     const tokenPath = "../files/Token.json";
     const paymasterPath = "../files/Paymaster.json";
+    const storagePath = "../files/Storage.json";
 
     describe("#constructor()", () => {
         it("`ContractFactory(abi, bytecode, runner)` should return a `ContractFactory` with `create` deployment", async () => {
@@ -50,6 +51,16 @@ describe("ContractFactory", () => {
     });
 
     describe("#deploy()", () => {
+        it("should deploy contract without constructor using CREATE opcode", async () => {
+            const abi = require(storagePath).contracts["Storage.sol:Storage"].abi;
+            const bytecode: string = require(tokenPath).contracts["Storage.sol:Storage"].bytecode;
+            const factoryCreate = new ContractFactory(abi, bytecode, wallet);
+            const contract = await factoryCreate.deploy();
+
+            const code = await provider.getCode(await contract.getAddress());
+            expect(code).not.to.be.null;
+        }).timeout(10_000);
+
         it("should deploy contract with CREATE opcode", async () => {
             const abi = require(tokenPath).abi;
             const bytecode: string = require(tokenPath).bytecode;
@@ -74,6 +85,18 @@ describe("ContractFactory", () => {
             );
 
             const code = await provider.getCode(await paymasterContract.getAddress());
+            expect(code).not.to.be.null;
+        }).timeout(10_000);
+
+        it("should deploy contract without constructor using CREATE2 opcode", async () => {
+            const abi = require(storagePath).contracts["Storage.sol:Storage"].abi;
+            const bytecode: string = require(tokenPath).contracts["Storage.sol:Storage"].bytecode;
+            const factoryCreate = new ContractFactory(abi, bytecode, wallet, "create2");
+            const contract = await factoryCreate.deploy({
+                customData: { salt: ethers.hexlify(ethers.randomBytes(32)) },
+            });
+
+            const code = await provider.getCode(await contract.getAddress());
             expect(code).not.to.be.null;
         }).timeout(10_000);
 
