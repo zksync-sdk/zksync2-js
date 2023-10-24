@@ -586,7 +586,6 @@ export class BrowserProvider extends JsonRpcApiProvider(ethers.BrowserProvider) 
         return this._contractAddresses;
     }
 
-
     constructor(ethereum: Eip1193Provider, network?: Networkish) {
         super(ethereum, network);
         this._contractAddresses = {};
