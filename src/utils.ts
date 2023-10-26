@@ -18,9 +18,7 @@ import { AbiCoder } from "ethers/lib/utils";
 export * from "./paymaster-utils";
 
 export const ZKSYNC_MAIN_ABI = new utils.Interface(require("../abi/IZkSync.json").abi);
-export const CONTRACT_DEPLOYER = new utils.Interface(
-    require("../abi/ContractDeployer.json").abi,
-);
+export const CONTRACT_DEPLOYER = new utils.Interface(require("../abi/ContractDeployer.json").abi);
 export const L1_MESSENGER = new utils.Interface(require("../abi/IL1Messenger.json").abi);
 export const IERC20 = new utils.Interface(require("../abi/IERC20.json").abi);
 export const IERC1271 = new utils.Interface(require("../abi/IERC1271.json").abi);
@@ -94,9 +92,7 @@ export function getHashedL2ToL1Msg(sender: Address, msg: BytesLike, txNumberInBl
     return ethers.utils.keccak256(encodedMsg);
 }
 
-export function getDeployedContracts(
-    receipt: ethers.providers.TransactionReceipt,
-): DeploymentInfo[] {
+export function getDeployedContracts(receipt: ethers.providers.TransactionReceipt): DeploymentInfo[] {
     const addressBytesLen = 40;
     const deployedContracts = receipt.logs
         .filter(
@@ -168,15 +164,9 @@ export async function checkBaseCost(
     }
 }
 
-export function serialize(
-    transaction: ethers.providers.TransactionRequest,
-    signature?: SignatureLike,
-) {
+export function serialize(transaction: ethers.providers.TransactionRequest, signature?: SignatureLike) {
     if (transaction.customData == null && transaction.type != EIP712_TX_TYPE) {
-        return utils.serializeTransaction(
-            transaction as ethers.PopulatedTransaction,
-            signature,
-        );
+        return utils.serializeTransaction(transaction as ethers.PopulatedTransaction, signature);
     }
     if (!transaction.chainId) {
         throw Error("Transaction chainId isn't set");
@@ -191,9 +181,7 @@ export function serialize(
     }
 
     if (!transaction.from) {
-        throw new Error(
-            "Explicitly providing `from` field is reqiured for EIP712 transactions",
-        );
+        throw new Error("Explicitly providing `from` field is reqiured for EIP712 transactions");
     }
     const from = transaction.from;
 
@@ -226,9 +214,7 @@ export function serialize(
     fields.push(utils.getAddress(from));
 
     // Add meta
-    fields.push(
-        formatNumber(meta.gasPerPubdata || DEFAULT_GAS_PER_PUBDATA_LIMIT, "gasPerPubdata"),
-    );
+    fields.push(formatNumber(meta.gasPerPubdata || DEFAULT_GAS_PER_PUBDATA_LIMIT, "gasPerPubdata"));
     fields.push((meta.factoryDeps ?? []).map((dep) => utils.hexlify(dep)));
 
     if (meta.customSignature && ethers.utils.arrayify(meta.customSignature).length == 0) {
@@ -352,11 +338,7 @@ export function parseTransaction(payload: ethers.BytesLike): ethers.Transaction 
         return transaction;
     }
 
-    if (
-        ethSignature.v !== 0 &&
-        ethSignature.v !== 1 &&
-        !transaction.customData.customSignature
-    ) {
+    if (ethSignature.v !== 0 && ethSignature.v !== 1 && !transaction.customData.customSignature) {
         throw new Error("Failed to parse signature");
     }
 
@@ -372,10 +354,7 @@ export function parseTransaction(payload: ethers.BytesLike): ethers.Transaction 
 }
 
 function getSignature(transaction: any, ethSignature?: EthereumSignature): Uint8Array {
-    if (
-        transaction?.customData?.customSignature &&
-        transaction.customData.customSignature.length
-    ) {
+    if (transaction?.customData?.customSignature && transaction.customData.customSignature.length) {
         return ethers.utils.arrayify(transaction.customData.customSignature);
     }
 
@@ -482,11 +461,7 @@ export async function getERC20BridgeCalldata(
 //
 // It will also pave the road for allowing future EIP-1271 signature verification, by
 // letting our SDK have functionality to verify signatures.
-function isECDSASignatureCorrect(
-    address: string,
-    msgHash: string,
-    signature: SignatureLike,
-): boolean {
+function isECDSASignatureCorrect(address: string, msgHash: string, signature: SignatureLike): boolean {
     try {
         return address == ethers.utils.recoverAddress(msgHash, signature);
     } catch {
@@ -617,9 +592,7 @@ export async function estimateDefaultBridgeDepositL2Gas(
 }
 
 export function scaleGasLimit(gasLimit: BigNumber): BigNumber {
-    return gasLimit
-        .mul(L1_FEE_ESTIMATION_COEF_NUMERATOR)
-        .div(L1_FEE_ESTIMATION_COEF_DENOMINATOR);
+    return gasLimit.mul(L1_FEE_ESTIMATION_COEF_NUMERATOR).div(L1_FEE_ESTIMATION_COEF_DENOMINATOR);
 }
 
 export async function estimateCustomBridgeDepositL2Gas(

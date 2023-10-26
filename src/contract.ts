@@ -8,12 +8,12 @@ import {
     EIP712_TX_TYPE,
     getDeployedContracts,
     DEFAULT_GAS_PER_PUBDATA_LIMIT,
-    ZERO_HASH
+    ZERO_HASH,
 } from "./utils";
 import { AccountAbstractionVersion, DeploymentType } from "./types";
-import {hexlify, isBytes, isHexString} from "@ethersproject/bytes";
-import {Logger} from "@ethersproject/logger";
-import {version} from "@ethersproject/contracts/src.ts/_version";
+import { hexlify, isBytes, isHexString } from "@ethersproject/bytes";
+import { Logger } from "@ethersproject/logger";
+import { version } from "@ethersproject/contracts/src.ts/_version";
 export { Contract } from "ethers";
 
 const logger = new Logger(version);
@@ -71,7 +71,6 @@ export class ContractFactory extends ethers.ContractFactory {
             throw new Error("Invalid 'factoryDeps' format. It should be an array of bytecodes.");
         }
     }
-
 
     override getDeployTransaction(...args: any[]): ethers.providers.TransactionRequest {
         let constructorArgs: any[];
@@ -149,11 +148,11 @@ export class ContractFactory extends ethers.ContractFactory {
 function normalizeBytecode(bytecode: BytesLike | { object: string }) {
     let bytecodeHex: string = null;
 
-    if (typeof(bytecode) === "string") {
+    if (typeof bytecode === "string") {
         bytecodeHex = bytecode;
     } else if (isBytes(bytecode)) {
         bytecodeHex = hexlify(bytecode);
-    } else if (bytecode && typeof(bytecode.object) === "string") {
+    } else if (bytecode && typeof bytecode.object === "string") {
         // Allow the bytecode object from the Solidity compiler
         bytecodeHex = (<any>bytecode).object;
     } else {
@@ -162,10 +161,12 @@ function normalizeBytecode(bytecode: BytesLike | { object: string }) {
     }
 
     // Make sure it is 0x prefixed
-    if (bytecodeHex.substring(0, 2) !== "0x") { bytecodeHex = "0x" + bytecodeHex; }
+    if (bytecodeHex.substring(0, 2) !== "0x") {
+        bytecodeHex = "0x" + bytecodeHex;
+    }
 
     // Make sure the final result is valid bytecode
-    if (!isHexString(bytecodeHex) || (bytecodeHex.length % 2)) {
+    if (!isHexString(bytecodeHex) || bytecodeHex.length % 2) {
         logger.throwArgumentError("invalid bytecode", "bytecode", bytecode);
     }
 }

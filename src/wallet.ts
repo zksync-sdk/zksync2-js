@@ -85,9 +85,7 @@ export class Wallet extends AdapterL2(AdapterL1(ethers.Wallet)) {
         this.providerL1 = providerL1;
     }
 
-    override async populateTransaction(
-        transaction: TransactionRequest,
-    ): Promise<TransactionRequest> {
+    override async populateTransaction(transaction: TransactionRequest): Promise<TransactionRequest> {
         if (transaction.type == null && transaction.customData == null) {
             // use legacy txs by default
             transaction.type = 0;

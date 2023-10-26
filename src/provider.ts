@@ -1,12 +1,4 @@
-import {
-    BigNumber,
-    BigNumberish,
-    BytesLike,
-    Contract,
-    ethers,
-    providers,
-    utils,
-} from "ethers";
+import { BigNumber, BigNumberish, BytesLike, Contract, ethers, providers, utils } from "ethers";
 import { ExternalProvider } from "@ethersproject/providers";
 import { ConnectionInfo, poll } from "@ethersproject/web";
 import { IERC20Factory, IEthTokenFactory, IL2BridgeFactory } from "../typechain";
@@ -154,10 +146,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
                             // But we still check that they were actually rejected.
                             if (
                                 receipt.blockNumber == null &&
-                                !(
-                                    receipt.status != null &&
-                                    BigNumber.from(receipt.status).isZero()
-                                )
+                                !(receipt.status != null && BigNumber.from(receipt.status).isZero())
                             ) {
                                 return null;
                             }
@@ -223,8 +212,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
 
                                     // Make sure we stall requests to fetch blocks and txs
                                     this._emitted["b:" + log.blockHash] = log.blockNumber;
-                                    this._emitted["t:" + log.transactionHash] =
-                                        log.blockNumber;
+                                    this._emitted["t:" + log.transactionHash] = log.blockNumber;
 
                                     this.emit(filter, log);
                                 });
@@ -370,8 +358,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
 
             defaultFormatter.formats.block.l1BatchNumber = Formatter.allowNull(number);
             defaultFormatter.formats.block.l1BatchTimestamp = Formatter.allowNull(number);
-            defaultFormatter.formats.blockWithTransactions.l1BatchNumber =
-                Formatter.allowNull(number);
+            defaultFormatter.formats.blockWithTransactions.l1BatchNumber = Formatter.allowNull(number);
             defaultFormatter.formats.blockWithTransactions.l1BatchTimestamp =
                 Formatter.allowNull(number);
             defaultFormatter.formats.transaction.l1BatchNumber = Formatter.allowNull(number);
@@ -474,9 +461,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         return result;
     }
 
-    override async estimateGas(
-        transaction: utils.Deferrable<TransactionRequest>,
-    ): Promise<BigNumber> {
+    override async estimateGas(transaction: utils.Deferrable<TransactionRequest>): Promise<BigNumber> {
         await this.getNetwork();
         const params = await utils.resolveProperties({
             transaction: this._getTransactionRequest(transaction),
@@ -493,9 +478,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         }
     }
 
-    async estimateGasL1(
-        transaction: utils.Deferrable<TransactionRequest>,
-    ): Promise<BigNumber> {
+    async estimateGasL1(transaction: utils.Deferrable<TransactionRequest>): Promise<BigNumber> {
         await this.getNetwork();
         const params = await utils.resolveProperties({
             transaction: this._getTransactionRequest(transaction),
@@ -753,9 +736,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         return typeof logs[0] === "string" ? logs : this._parseLogs(logs);
     }
 
-    override async getLogs(
-        filter: EventFilter | Promise<EventFilter> = {},
-    ): Promise<Array<Log>> {
+    override async getLogs(filter: EventFilter | Promise<EventFilter> = {}): Promise<Array<Log>> {
         filter = await filter;
         const logs = await this.send("eth_getLogs", [this._prepareFilter(filter)]);
         return this._parseLogs(logs);
@@ -768,8 +749,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
     protected _prepareFilter(filter: EventFilter) {
         return {
             ...filter,
-            fromBlock:
-                filter.fromBlock == null ? null : this.formatter.blockTag(filter.fromBlock),
+            fromBlock: filter.fromBlock == null ? null : this.formatter.blockTag(filter.fromBlock),
             toBlock: filter.fromBlock == null ? null : this.formatter.blockTag(filter.toBlock),
         };
     }
@@ -808,17 +788,13 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         return TransactionStatus.Committed;
     }
 
-    override async getTransaction(
-        hash: string | Promise<string>,
-    ): Promise<TransactionResponse> {
+    override async getTransaction(hash: string | Promise<string>): Promise<TransactionResponse> {
         hash = await hash;
         const tx = await super.getTransaction(hash);
         return tx ? this._wrapTransaction(tx, hash) : null;
     }
 
-    override async sendTransaction(
-        transaction: string | Promise<string>,
-    ): Promise<TransactionResponse> {
+    override async sendTransaction(transaction: string | Promise<string>): Promise<TransactionResponse> {
         return (await super.sendTransaction(transaction)) as TransactionResponse;
     }
 
@@ -856,11 +832,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
     }
 
     async getContractAccountInfo(address: Address): Promise<ContractAccountInfo> {
-        const deployerContract = new Contract(
-            CONTRACT_DEPLOYER_ADDRESS,
-            CONTRACT_DEPLOYER,
-            this,
-        );
+        const deployerContract = new Contract(CONTRACT_DEPLOYER_ADDRESS, CONTRACT_DEPLOYER, this);
         const data = await deployerContract.getAccountInfo(address);
 
         return {
@@ -914,8 +886,7 @@ export class Web3Provider extends Provider {
             throw new Error("provider must implement eip-1193");
         }
 
-        let path =
-            provider.host || provider.path || (provider.isMetaMask ? "metamask" : "eip-1193:");
+        let path = provider.host || provider.path || (provider.isMetaMask ? "metamask" : "eip-1193:");
         super(path, network);
         this.provider = provider;
     }

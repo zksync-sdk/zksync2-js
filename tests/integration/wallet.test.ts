@@ -10,8 +10,7 @@ const { expect } = chai;
 describe("Wallet", () => {
     const ADDRESS = "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049";
     const PRIVATE_KEY = "0x7726827caac94a7f9e1b160f7ea819f172f7b6f9d2a97f992c38edeab82d4110";
-    const MNEMONIC =
-        "stuff slice staff easily soup parent arm payment cotton trade scatter struggle";
+    const MNEMONIC = "stuff slice staff easily soup parent arm payment cotton trade scatter struggle";
     const RECEIVER = "0xa61464658AfeAf65CccaaFD3a512b69A83B77618";
 
     const provider = Provider.getDefaultProvider();
@@ -360,8 +359,7 @@ describe("Wallet", () => {
             const result = await finalizeWithdrawTx.wait();
             const l2BalanceAfterWithdrawal = await wallet.getBalance();
             expect(result).not.to.be.null;
-            expect(l2BalanceBeforeWithdrawal.sub(l2BalanceAfterWithdrawal).gte(amount)).to.be
-                .true;
+            expect(l2BalanceBeforeWithdrawal.sub(l2BalanceAfterWithdrawal).gte(amount)).to.be.true;
         }).timeout(25_000);
 
         it("should withdraw DAI to L1 network", async () => {
@@ -380,10 +378,8 @@ describe("Wallet", () => {
             const l2BalanceAfterWithdrawal = await wallet.getBalance(l2DAI);
             const l1BalanceAfterWithdrawal = await wallet.getBalanceL1(TOKENS.DAI.address);
             expect(result).not.to.be.null;
-            expect(l2BalanceBeforeWithdrawal.sub(l2BalanceAfterWithdrawal).eq(amount)).to.be
-                .true;
-            expect(l1BalanceAfterWithdrawal.sub(l1BalanceBeforeWithdrawal).eq(amount)).to.be
-                .true;
+            expect(l2BalanceBeforeWithdrawal.sub(l2BalanceAfterWithdrawal).eq(amount)).to.be.true;
+            expect(l1BalanceAfterWithdrawal.sub(l1BalanceBeforeWithdrawal).eq(amount)).to.be.true;
         }).timeout(25_000);
     });
 
@@ -424,10 +420,8 @@ describe("Wallet", () => {
             const l2BalanceAfterExecution = await wallet.getBalance();
             const l1BalanceAfterExecution = await wallet.getBalanceL1();
             expect(result).not.to.be.null;
-            expect(l2BalanceAfterExecution.sub(l2BalanceBeforeExecution).gte(amount)).to.be
-                .true;
-            expect(l1BalanceBeforeExecution.sub(l1BalanceAfterExecution).gte(amount)).to.be
-                .true;
+            expect(l2BalanceAfterExecution.sub(l2BalanceBeforeExecution).gte(amount)).to.be.true;
+            expect(l1BalanceBeforeExecution.sub(l1BalanceAfterExecution).gte(amount)).to.be.true;
         }).timeout(10_000);
     });
 
