@@ -753,7 +753,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "commitBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[])"(
+    "commitBlocks(tuple,tuple[])"(
       _lastCommittedBlockData: {
         blockNumber: BigNumberish;
         blockHash: BytesLike;
@@ -824,7 +824,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "executeUpgrade((tuple[],address,bytes),bytes32)"(
+    "executeUpgrade(tuple,bytes32)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -1242,7 +1242,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "proposeTransparentUpgrade((tuple[],address,bytes),uint40)"(
+    "proposeTransparentUpgrade(tuple,uint40)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -1285,7 +1285,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "proveBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[],(uint256[],uint256[]))"(
+    "proveBlocks(tuple,tuple[],tuple)"(
       _prevBlock: {
         blockNumber: BigNumberish;
         blockHash: BytesLike;
@@ -1354,7 +1354,7 @@ export class IZkSync extends Contract {
       0: boolean;
     }>;
 
-    "proveL2LogInclusion(uint256,uint256,(uint8,bool,uint16,address,bytes32,bytes32),bytes32[])"(
+    "proveL2LogInclusion(uint256,uint256,tuple,bytes32[])"(
       _blockNumber: BigNumberish,
       _index: BigNumberish,
       _log: {
@@ -1385,7 +1385,7 @@ export class IZkSync extends Contract {
       0: boolean;
     }>;
 
-    "proveL2MessageInclusion(uint256,uint256,(uint16,address,bytes),bytes32[])"(
+    "proveL2MessageInclusion(uint256,uint256,tuple,bytes32[])"(
       _blockNumber: BigNumberish,
       _index: BigNumberish,
       _message: {
@@ -1519,7 +1519,7 @@ export class IZkSync extends Contract {
       0: string;
     }>;
 
-    "upgradeProposalHash((tuple[],address,bytes),uint256,bytes32)"(
+    "upgradeProposalHash(tuple,uint256,bytes32)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -1580,7 +1580,7 @@ export class IZkSync extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "commitBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[])"(
+  "commitBlocks(tuple,tuple[])"(
     _lastCommittedBlockData: {
       blockNumber: BigNumberish;
       blockHash: BytesLike;
@@ -1651,7 +1651,7 @@ export class IZkSync extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "executeUpgrade((tuple[],address,bytes),bytes32)"(
+  "executeUpgrade(tuple,bytes32)"(
     _diamondCut: {
       facetCuts: {
         facet: string;
@@ -1941,7 +1941,7 @@ export class IZkSync extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "proposeTransparentUpgrade((tuple[],address,bytes),uint40)"(
+  "proposeTransparentUpgrade(tuple,uint40)"(
     _diamondCut: {
       facetCuts: {
         facet: string;
@@ -1984,7 +1984,7 @@ export class IZkSync extends Contract {
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "proveBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[],(uint256[],uint256[]))"(
+  "proveBlocks(tuple,tuple[],tuple)"(
     _prevBlock: {
       blockNumber: BigNumberish;
       blockHash: BytesLike;
@@ -2047,7 +2047,7 @@ export class IZkSync extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  "proveL2LogInclusion(uint256,uint256,(uint8,bool,uint16,address,bytes32,bytes32),bytes32[])"(
+  "proveL2LogInclusion(uint256,uint256,tuple,bytes32[])"(
     _blockNumber: BigNumberish,
     _index: BigNumberish,
     _log: {
@@ -2074,7 +2074,7 @@ export class IZkSync extends Contract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  "proveL2MessageInclusion(uint256,uint256,(uint16,address,bytes),bytes32[])"(
+  "proveL2MessageInclusion(uint256,uint256,tuple,bytes32[])"(
     _blockNumber: BigNumberish,
     _index: BigNumberish,
     _message: {
@@ -2200,7 +2200,7 @@ export class IZkSync extends Contract {
     overrides?: CallOverrides
   ): Promise<string>;
 
-  "upgradeProposalHash((tuple[],address,bytes),uint256,bytes32)"(
+  "upgradeProposalHash(tuple,uint256,bytes32)"(
     _diamondCut: {
       facetCuts: {
         facet: string;
@@ -2259,7 +2259,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "commitBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[])"(
+    "commitBlocks(tuple,tuple[])"(
       _lastCommittedBlockData: {
         blockNumber: BigNumberish;
         blockHash: BytesLike;
@@ -2330,7 +2330,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "executeUpgrade((tuple[],address,bytes),bytes32)"(
+    "executeUpgrade(tuple,bytes32)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -2627,7 +2627,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "proposeTransparentUpgrade((tuple[],address,bytes),uint40)"(
+    "proposeTransparentUpgrade(tuple,uint40)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -2670,7 +2670,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "proveBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[],(uint256[],uint256[]))"(
+    "proveBlocks(tuple,tuple[],tuple)"(
       _prevBlock: {
         blockNumber: BigNumberish;
         blockHash: BytesLike;
@@ -2733,7 +2733,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "proveL2LogInclusion(uint256,uint256,(uint8,bool,uint16,address,bytes32,bytes32),bytes32[])"(
+    "proveL2LogInclusion(uint256,uint256,tuple,bytes32[])"(
       _blockNumber: BigNumberish,
       _index: BigNumberish,
       _log: {
@@ -2760,7 +2760,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "proveL2MessageInclusion(uint256,uint256,(uint16,address,bytes),bytes32[])"(
+    "proveL2MessageInclusion(uint256,uint256,tuple,bytes32[])"(
       _blockNumber: BigNumberish,
       _index: BigNumberish,
       _message: {
@@ -2886,7 +2886,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "upgradeProposalHash((tuple[],address,bytes),uint256,bytes32)"(
+    "upgradeProposalHash(tuple,uint256,bytes32)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -3034,7 +3034,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "commitBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[])"(
+    "commitBlocks(tuple,tuple[])"(
       _lastCommittedBlockData: {
         blockNumber: BigNumberish;
         blockHash: BytesLike;
@@ -3105,7 +3105,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "executeUpgrade((tuple[],address,bytes),bytes32)"(
+    "executeUpgrade(tuple,bytes32)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -3371,7 +3371,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "proposeTransparentUpgrade((tuple[],address,bytes),uint40)"(
+    "proposeTransparentUpgrade(tuple,uint40)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -3414,7 +3414,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "proveBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[],(uint256[],uint256[]))"(
+    "proveBlocks(tuple,tuple[],tuple)"(
       _prevBlock: {
         blockNumber: BigNumberish;
         blockHash: BytesLike;
@@ -3477,7 +3477,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "proveL2LogInclusion(uint256,uint256,(uint8,bool,uint16,address,bytes32,bytes32),bytes32[])"(
+    "proveL2LogInclusion(uint256,uint256,tuple,bytes32[])"(
       _blockNumber: BigNumberish,
       _index: BigNumberish,
       _log: {
@@ -3504,7 +3504,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "proveL2MessageInclusion(uint256,uint256,(uint16,address,bytes),bytes32[])"(
+    "proveL2MessageInclusion(uint256,uint256,tuple,bytes32[])"(
       _blockNumber: BigNumberish,
       _index: BigNumberish,
       _message: {
@@ -3630,7 +3630,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "upgradeProposalHash((tuple[],address,bytes),uint256,bytes32)"(
+    "upgradeProposalHash(tuple,uint256,bytes32)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -3690,7 +3690,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "commitBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[])"(
+    "commitBlocks(tuple,tuple[])"(
       _lastCommittedBlockData: {
         blockNumber: BigNumberish;
         blockHash: BytesLike;
@@ -3761,7 +3761,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "executeUpgrade((tuple[],address,bytes),bytes32)"(
+    "executeUpgrade(tuple,bytes32)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -4091,7 +4091,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "proposeTransparentUpgrade((tuple[],address,bytes),uint40)"(
+    "proposeTransparentUpgrade(tuple,uint40)"(
       _diamondCut: {
         facetCuts: {
           facet: string;
@@ -4134,7 +4134,7 @@ export class IZkSync extends Contract {
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "proveBlocks((uint64,bytes32,uint64,uint256,bytes32,bytes32,uint256,bytes32),tuple[],(uint256[],uint256[]))"(
+    "proveBlocks(tuple,tuple[],tuple)"(
       _prevBlock: {
         blockNumber: BigNumberish;
         blockHash: BytesLike;
@@ -4197,7 +4197,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "proveL2LogInclusion(uint256,uint256,(uint8,bool,uint16,address,bytes32,bytes32),bytes32[])"(
+    "proveL2LogInclusion(uint256,uint256,tuple,bytes32[])"(
       _blockNumber: BigNumberish,
       _index: BigNumberish,
       _log: {
@@ -4224,7 +4224,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "proveL2MessageInclusion(uint256,uint256,(uint16,address,bytes),bytes32[])"(
+    "proveL2MessageInclusion(uint256,uint256,tuple,bytes32[])"(
       _blockNumber: BigNumberish,
       _index: BigNumberish,
       _message: {
@@ -4350,7 +4350,7 @@ export class IZkSync extends Contract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "upgradeProposalHash((tuple[],address,bytes),uint256,bytes32)"(
+    "upgradeProposalHash(tuple,uint256,bytes32)"(
       _diamondCut: {
         facetCuts: {
           facet: string;

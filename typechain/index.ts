@@ -16,6 +16,8 @@ export {IL2BridgeFactory} from './IL2BridgeFactory';
 export type {IL2Bridge} from './IL2Bridge';
 export {IPaymasterFlowFactory} from './IPaymasterFlowFactory';
 export type {IPaymasterFlow} from './IPaymasterFlow';
+export {INonceHolderFactory} from './INonceHolderFactory';
+export type {INonceHolder} from './INonceHolder';
 export {IZkSyncFactory} from './IZkSyncFactory';
 export type {IZkSync} from './IZkSync';
 

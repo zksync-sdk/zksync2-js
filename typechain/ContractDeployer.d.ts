@@ -259,7 +259,7 @@ export class ContractDeployer extends Contract {
       overrides?: PayableOverrides
     ): Promise<ContractTransaction>;
 
-    "forceDeployOnAddress((bytes32,address,bool,uint256,bytes),address)"(
+    "forceDeployOnAddress(tuple,address)"(
       _deployment: {
         bytecodeHash: BytesLike;
         newAddress: string;
@@ -472,7 +472,7 @@ export class ContractDeployer extends Contract {
     overrides?: PayableOverrides
   ): Promise<ContractTransaction>;
 
-  "forceDeployOnAddress((bytes32,address,bool,uint256,bytes),address)"(
+  "forceDeployOnAddress(tuple,address)"(
     _deployment: {
       bytecodeHash: BytesLike;
       newAddress: string;
@@ -657,7 +657,7 @@ export class ContractDeployer extends Contract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "forceDeployOnAddress((bytes32,address,bool,uint256,bytes),address)"(
+    "forceDeployOnAddress(tuple,address)"(
       _deployment: {
         bytecodeHash: BytesLike;
         newAddress: string;
@@ -861,7 +861,7 @@ export class ContractDeployer extends Contract {
       overrides?: PayableOverrides
     ): Promise<BigNumber>;
 
-    "forceDeployOnAddress((bytes32,address,bool,uint256,bytes),address)"(
+    "forceDeployOnAddress(tuple,address)"(
       _deployment: {
         bytecodeHash: BytesLike;
         newAddress: string;
@@ -1037,7 +1037,7 @@ export class ContractDeployer extends Contract {
       overrides?: PayableOverrides
     ): Promise<PopulatedTransaction>;
 
-    "forceDeployOnAddress((bytes32,address,bool,uint256,bytes),address)"(
+    "forceDeployOnAddress(tuple,address)"(
       _deployment: {
         bytecodeHash: BytesLike;
         newAddress: string;
