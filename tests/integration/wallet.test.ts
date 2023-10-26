@@ -140,6 +140,13 @@ describe("Wallet", () => {
         });
     });
 
+    describe("#getDeploymentNonce()", () => {
+        it("should return a deployment nonce", async () => {
+            const result = await wallet.getDeploymentNonce();
+            expect(result).not.to.be.null;
+        });
+    });
+
     describe("#populateTransaction()", () => {
         it("should return populated transaction with default values if are omitted", async () => {
             const tx = {

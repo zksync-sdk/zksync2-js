@@ -4,6 +4,7 @@ import {
     IL1BridgeFactory,
     IL2BridgeFactory,
     IZkSyncFactory,
+    INonceHolderFactory
 } from "../typechain";
 import { Provider } from "./provider";
 import {
@@ -31,6 +32,7 @@ import {
     REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT,
     scaleGasLimit,
     undoL1ToL2Alias,
+    NONCE_HOLDER_ADDRESS
 } from "./utils";
 
 type Constructor<T = {}> = new (...args: any[]) => T;
@@ -795,6 +797,13 @@ export function AdapterL2<TBase extends Constructor<TxSender>>(Base: TBase) {
 
         async getAllBalances(): Promise<BalancesMap> {
             return await this._providerL2().getAllAccountBalances(await this.getAddress());
+        }
+
+        async getDeploymentNonce(): Promise<BigNumber> {
+            return await INonceHolderFactory.connect(
+                NONCE_HOLDER_ADDRESS,
+                this._signerL2(),
+            ).getDeploymentNonce(await this.getAddress());
         }
 
         async getL2BridgeContracts() {
