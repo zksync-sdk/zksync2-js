@@ -55,8 +55,7 @@ export type BlockTag =
     | 'earliest'
     | 'pending';
 
-// TODO (SMA-1585): Support create2 variants.
-export type DeploymentType = "create" | "createAccount";
+export type DeploymentType = "create" | "createAccount" | "create2" | "create2Account";
 
 export interface Token {
     l1Address: Address;
