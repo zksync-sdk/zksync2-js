@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { Provider, types, utils, Wallet } from "../../src";
 import { BigNumber, ethers } from "ethers";
+import {TOKENS} from "../const";
 
 describe("Provider", () => {
     const ADDRESS = "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049";
@@ -316,6 +317,48 @@ describe("Provider", () => {
             });
             expect(result.gte(BigNumber.from(0))).to.be.true;
         });
+    });
+
+    describe("#estimateFee()", () => {
+        it("should return gas estimation of transaction", async () => {
+            const result = await provider.estimateFee({
+                from: ADDRESS,
+                to: RECEIVER,
+                value: `0x${BigInt(7_000_000_000).toString(16)}`,
+            });
+            expect(result).not.to.be.null;
+        });
+    });
+
+    describe("#estimateGas()", () => {
+        it("should return gas estimation of transaction", async () => {
+            const result = await provider.estimateGas({
+                from: ADDRESS,
+                to: await provider.l2TokenAddress(TOKENS.DAI.address),
+                data: utils.IERC20.encodeFunctionData("approve", [RECEIVER, 1]),
+            });
+            expect(result.gt(BigNumber.from(0))).to.be.true;
+        });
+
+        // it("should return gas estimation of EIP712 transaction", async () => {
+        //     // const tokenApprove = await provider.estimateGas({
+        //     //     from: PUBLIC_KEY,
+        //     //     to: tokenAddress,
+        //     //     data: utils.IERC20.encodeFunctionData("approve", [RECEIVER, 1]),
+        //     //     customData: {
+        //     //         gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+        //     //         paymasterParams,
+        //     //     }
+        //     // });
+        //     // console.log(`Gas token approval (EIP-712): ${tokenApprove}`);
+        //
+        //     const result = await provider.estimateFee({
+        //         from: ADDRESS,
+        //         to: RECEIVER,
+        //         value: `0x${BigInt(7_000_000_000).toString(16)}`,
+        //     });
+        //     expect(result).not.to.be.null;
+        // });
     });
 
     describe("#getFilterChanges()", () => {

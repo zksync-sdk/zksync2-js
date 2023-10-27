@@ -67,6 +67,13 @@ export interface Token {
     decimals: number;
 }
 
+export interface Fee {
+    readonly gasLimit: bigint;
+    readonly gasPerPubdataLimit: bigint;
+    readonly maxPriorityFeePerGas: bigint;
+    readonly maxFeePerGas: bigint;
+}
+
 export interface MessageProof {
     id: number;
     proof: string[];

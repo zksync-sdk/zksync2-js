@@ -21,6 +21,7 @@ import {
     TransactionRequest,
     TransactionResponse,
     TransactionStatus,
+    Fee
 } from "./types";
 import {
     CONTRACT_DEPLOYER,
@@ -495,6 +496,10 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         } catch (error) {
             throw new Error(`bad result from backend (zks_estimateGasL1ToL2): ${result}`);
         }
+    }
+
+    async estimateFee(transaction: TransactionRequest): Promise<Fee> {
+        return await this.send("zks_estimateFee", [transaction]);
     }
 
     override async getGasPrice(token?: Address): Promise<BigNumber> {
