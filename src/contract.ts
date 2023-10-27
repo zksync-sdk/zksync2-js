@@ -12,11 +12,7 @@ import {
 } from "./utils";
 import { AccountAbstractionVersion, DeploymentType } from "./types";
 import { hexlify, isBytes, isHexString } from "@ethersproject/bytes";
-import { Logger } from "@ethersproject/logger";
-import { version } from "@ethersproject/contracts/src.ts/_version";
 export { Contract } from "ethers";
-
-const logger = new Logger(version);
 
 export class ContractFactory extends ethers.ContractFactory {
     override readonly signer: Wallet | Signer;
@@ -167,6 +163,6 @@ function normalizeBytecode(bytecode: BytesLike | { object: string }) {
 
     // Make sure the final result is valid bytecode
     if (!isHexString(bytecodeHex) || bytecodeHex.length % 2) {
-        logger.throwArgumentError("invalid bytecode", "bytecode", bytecode);
+        throw new Error("invalid bytecode");
     }
 }
