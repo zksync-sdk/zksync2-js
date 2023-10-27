@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Provider, types, utils, Wallet } from "../../src";
 import { ethers } from "ethers";
-import { TOKENS } from "../const.test";
+import { TOKENS } from "../const";
 
 describe("Provider", () => {
     const ADDRESS = "0x36615Cf349d7F6344891B1e7CA7C72883F5dc049";

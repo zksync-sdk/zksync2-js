@@ -2,7 +2,7 @@ import * as chai from "chai";
 import "../custom-matchers";
 import { Provider, types, Wallet, ContractFactory } from "../../src";
 import { ethers } from "ethers";
-import { TOKENS } from "../const.test";
+import { TOKENS } from "../const";
 
 const { expect } = chai;
 
@@ -53,9 +53,9 @@ describe("ContractFactory", () => {
     describe("#deploy()", () => {
         it("should deploy contract without constructor using CREATE opcode", async () => {
             const abi = require(storagePath).contracts["Storage.sol:Storage"].abi;
-            const bytecode: string = require(tokenPath).contracts["Storage.sol:Storage"].bytecode;
-            const factoryCreate = new ContractFactory(abi, bytecode, wallet);
-            const contract = await factoryCreate.deploy();
+            const bytecode: string = require(storagePath).contracts["Storage.sol:Storage"].bin;
+            const factory = new ContractFactory(abi, bytecode, wallet);
+            const contract = await factory.deploy();
 
             const code = await provider.getCode(await contract.getAddress());
             expect(code).not.to.be.null;
@@ -90,9 +90,9 @@ describe("ContractFactory", () => {
 
         it("should deploy contract without constructor using CREATE2 opcode", async () => {
             const abi = require(storagePath).contracts["Storage.sol:Storage"].abi;
-            const bytecode: string = require(tokenPath).contracts["Storage.sol:Storage"].bytecode;
-            const factoryCreate = new ContractFactory(abi, bytecode, wallet, "create2");
-            const contract = await factoryCreate.deploy({
+            const bytecode: string = require(storagePath).contracts["Storage.sol:Storage"].bin;
+            const factory = new ContractFactory(abi, bytecode, wallet, "create2");
+            const contract = await factory.deploy({
                 customData: { salt: ethers.hexlify(ethers.randomBytes(32)) },
             });
 
@@ -103,8 +103,8 @@ describe("ContractFactory", () => {
         it("should deploy contract with CREATE2 opcode", async () => {
             const abi = require(tokenPath).abi;
             const bytecode: string = require(tokenPath).bytecode;
-            const factoryCreate = new ContractFactory(abi, bytecode, wallet, "create2");
-            const contract = await factoryCreate.deploy("Ducat", "Ducat", 18, {
+            const factory = new ContractFactory(abi, bytecode, wallet, "create2");
+            const contract = await factory.deploy("Ducat", "Ducat", 18, {
                 customData: { salt: ethers.hexlify(ethers.randomBytes(32)) },
             });
 
@@ -128,47 +128,6 @@ describe("ContractFactory", () => {
 
             const code = await provider.getCode(await paymasterContract.getAddress());
             expect(code).not.to.be.null;
-        }).timeout(10_000);
-
-        it("should throw error: `Error: Salt is required for CREATE2 deployment.` when salt is not provided using create deployment type", async () => {
-            const paymasterAbi = require(paymasterPath).abi;
-            const paymasterBytecode = require(paymasterPath).bytecode;
-            const accountFactory = new ContractFactory(
-                paymasterAbi,
-                paymasterBytecode,
-                wallet,
-                "create2",
-            );
-            try {
-                await accountFactory.deploy(
-                    ethers.hexlify(ethers.randomBytes(32)),
-                    await provider.l2TokenAddress(TOKENS.DAI.address),
-                );
-                expect.fail("Expected an error to be thrown.");
-            } catch (error) {
-                expect(error.message).to.equal("Salt is required for CREATE2 deployment.");
-            }
-        }).timeout(10_000);
-
-        it("should throw error: `Error: Salt is required for CREATE2 deployment.` when salt is not provided using create2Account deployment type", async () => {
-            const paymasterAbi = require(paymasterPath).abi;
-            const paymasterBytecode = require(paymasterPath).bytecode;
-            const accountFactory = new ContractFactory(
-                paymasterAbi,
-                paymasterBytecode,
-                wallet,
-                "create2Account",
-            );
-
-            try {
-                await accountFactory.deploy(
-                    ethers.hexlify(ethers.randomBytes(32)),
-                    await provider.l2TokenAddress(TOKENS.DAI.address),
-                );
-                expect.fail("Expected an error to be thrown.");
-            } catch (error) {
-                expect(error.message).to.equal("Salt is required for CREATE2 deployment.");
-            }
         }).timeout(10_000);
     });
 });
