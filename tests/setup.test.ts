@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { Provider, types, Wallet } from "../src";
 import { ethers } from "ethers";
-import { TOKENS } from "./const.test";
+import { TOKENS } from "./const";
 
 // This should be run first before all other tests,
 // which is why it's specified first in the test command in package.json.

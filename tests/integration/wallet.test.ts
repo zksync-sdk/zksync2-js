@@ -3,7 +3,7 @@ import "../custom-matchers";
 import { Provider, types, utils, Wallet } from "../../src";
 import { ethers } from "ethers";
 import * as fs from "fs";
-import { TOKENS } from "../const.test";
+import { TOKENS } from "../const";
 
 const { expect } = chai;
 
