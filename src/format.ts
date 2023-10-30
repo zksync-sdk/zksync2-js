@@ -111,7 +111,7 @@ const _formatLog = object(
         blockNumber: getNumber,
         data: formatData,
         index: getNumber,
-        removed: formatBoolean,
+        removed: allowNull(formatBoolean, false),
         topics: arrayOf(formatHash),
         transactionHash: formatHash,
         transactionIndex: getNumber,
