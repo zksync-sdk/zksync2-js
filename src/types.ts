@@ -68,10 +68,10 @@ export interface Token {
 }
 
 export interface Fee {
-    readonly gasLimit: bigint;
-    readonly gasPerPubdataLimit: bigint;
-    readonly maxPriorityFeePerGas: bigint;
-    readonly maxFeePerGas: bigint;
+    readonly gasLimit: BigNumber;
+    readonly gasPerPubdataLimit: BigNumber;
+    readonly maxPriorityFeePerGas: BigNumber;
+    readonly maxFeePerGas: BigNumber;
 }
 
 export interface MessageProof {
