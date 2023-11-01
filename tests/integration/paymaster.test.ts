@@ -23,12 +23,14 @@ describe("Paymaster", () => {
             const abi = require(tokenPath).abi;
             const bytecode: string = require(tokenPath).bytecode;
             const factory = new ContractFactory(abi, bytecode, wallet);
-            const tokenContract = await factory.deploy("Ducat", "Ducat", 18);
+            const tokenContract = (await factory.deploy("Ducat", "Ducat", 18)) as Contract;
             const tokenAddress = await tokenContract.getAddress();
-            const token = new Contract(tokenAddress, abi, wallet);
 
             // mint tokens to wallet, so it could pay fee with tokens
-            await token.mint(Typed.address(await wallet.getAddress()), Typed.uint256(INIT_MINT_AMOUNT));
+            await tokenContract.mint(
+                Typed.address(await wallet.getAddress()),
+                Typed.uint256(INIT_MINT_AMOUNT),
+            );
 
             const paymasterAbi = require(paymasterPath).abi;
             const paymasterBytecode = require(paymasterPath).bytecode;

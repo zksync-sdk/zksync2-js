@@ -1,13 +1,13 @@
 import {
     BytesLike,
-    Contract,
     InterfaceAbi,
     Interface,
     ethers,
     ContractRunner,
-    ContractTransaction,
     BaseContract,
     ContractTransactionResponse,
+    ContractDeployTransaction,
+    ContractMethodArgs,
 } from "ethers";
 import {
     hashBytecode,
@@ -18,9 +18,11 @@ import {
     DEFAULT_GAS_PER_PUBDATA_LIMIT,
 } from "./utils";
 import { AccountAbstractionVersion, DeploymentType } from "./types";
-export { Contract } from "ethers";
 
-export class ContractFactory extends ethers.ContractFactory {
+export class ContractFactory<
+    A extends Array<any> = Array<any>,
+    I = BaseContract,
+> extends ethers.ContractFactory<A, I> {
     readonly deploymentType: DeploymentType;
 
     constructor(
@@ -73,7 +75,9 @@ export class ContractFactory extends ethers.ContractFactory {
         }
     }
 
-    override async getDeployTransaction(...args: any[]): Promise<ContractTransaction> {
+    override async getDeployTransaction(
+        ...args: ContractMethodArgs<A>
+    ): Promise<ContractDeployTransaction> {
         let constructorArgs: any[];
         let overrides: ethers.Overrides = {
             customData: { factoryDeps: [], salt: ethers.ZeroHash },
@@ -129,7 +133,7 @@ export class ContractFactory extends ethers.ContractFactory {
      * because **deploy** already waits for deployment to finish.
      *
      * @async
-     * @param {...Array<any>} args - Constructor arguments for the contract followed by optional
+     * @param {...ContractMethodArgs} args - Constructor arguments for the contract followed by optional
      * {@link ethers.Overrides|overrides}. When deploying with CREATE2 opcode slat must be present in overrides.
      *
      *
@@ -160,10 +164,10 @@ export class ContractFactory extends ethers.ContractFactory {
      * });
      */
     override async deploy(
-        ...args: Array<any>
+        ...args: ContractMethodArgs<A>
     ): Promise<
         BaseContract & { deploymentTransaction(): ContractTransactionResponse } & Omit<
-                BaseContract,
+                I,
                 keyof BaseContract
             >
     > {
@@ -183,7 +187,7 @@ export class ContractFactory extends ethers.ContractFactory {
             contract.interface.fragments,
             contract.runner,
         ) as BaseContract & { deploymentTransaction(): ContractTransactionResponse } & Omit<
-                BaseContract,
+                I,
                 keyof BaseContract
             >;
 
