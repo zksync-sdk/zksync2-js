@@ -63,13 +63,7 @@ interface IL2BridgeInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
-  events: {
-    "FinalizeDeposit(address,address,address,uint256)": EventFragment;
-    "WithdrawalInitiated(address,address,address,uint256)": EventFragment;
-  };
-
-  getEvent(nameOrSignatureOrTopic: "FinalizeDeposit"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "WithdrawalInitiated"): EventFragment;
+  events: {};
 }
 
 export class IL2Bridge extends Contract {
@@ -263,21 +257,7 @@ export class IL2Bridge extends Contract {
     ): Promise<void>;
   };
 
-  filters: {
-    FinalizeDeposit(
-      l1Sender: string | null,
-      l2Receiver: string | null,
-      l2Token: string | null,
-      amount: null
-    ): EventFilter;
-
-    WithdrawalInitiated(
-      l2Sender: string | null,
-      l1Receiver: string | null,
-      l2Token: string | null,
-      amount: null
-    ): EventFilter;
-  };
+  filters: {};
 
   estimateGas: {
     finalizeDeposit(

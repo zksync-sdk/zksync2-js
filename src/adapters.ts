@@ -3,8 +3,9 @@ import {
     IERC20Factory,
     IL1BridgeFactory,
     IL2BridgeFactory,
-    IZkSyncFactory,
+    IBridgehubFactory,
     INonceHolderFactory,
+    IBridgehub,
 } from "../typechain";
 import { Provider } from "./provider";
 import {
@@ -56,9 +57,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             throw new Error("Must be implemented by the derived class!");
         }
 
-        async getMainContract() {
+        async getMainContract(): Promise<IBridgehub> {
             const address = await this._providerL2().getMainContractAddress();
-            return IZkSyncFactory.connect(address, this._signerL1());
+            return IBridgehubFactory.connect(address, this._signerL1());
         }
 
         async getL1BridgeContracts() {
@@ -159,13 +160,14 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             gasPerPubdataByte?: BigNumberish;
             gasPrice?: BigNumberish;
         }): Promise<BigNumber> {
-            const zksyncContract = await this.getMainContract();
+            const bridgehub = await this.getMainContract();
             const parameters = { ...layer1TxDefaults(), ...params };
             parameters.gasPrice ??= await this._providerL1().getGasPrice();
             parameters.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
 
             return BigNumber.from(
-                await zksyncContract.l2TransactionBaseCost(
+                await bridgehub.l2TransactionBaseCost(
+                    (await this._providerL2().getNetwork()).chainId,
                     parameters.gasPrice,
                     parameters.gasLimit,
                     parameters.gasPerPubdataByte,
@@ -320,9 +322,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             await insertGasPrice(this._providerL1(), overrides);
             const gasPriceForEstimation = overrides.maxFeePerGas || overrides.gasPrice;
 
-            const zksyncContract = await this.getMainContract();
+            const bridgehub = await this.getMainContract();
 
-            const baseCost = await zksyncContract.l2TransactionBaseCost(
+            const baseCost = await bridgehub.l2TransactionBaseCost(
+                (await this._providerL2().getNetwork()).chainId,
                 await gasPriceForEstimation,
                 tx.l2GasLimit,
                 tx.gasPerPubdataByte,
@@ -342,7 +345,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.constants.AddressZero;
-                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address] = [
+                const args: [BigNumberish, Address, Address, BigNumberish, BigNumberish, BigNumberish, Address] = [
+                    (await this._providerL2().getNetwork()).chainId,
                     to,
                     token,
                     amount,
@@ -381,7 +385,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const dummyAmount = "1";
 
             const { ...tx } = transaction;
-            const zksyncContract = await this.getMainContract();
+            const bridgehub = await this.getMainContract();
 
             tx.overrides ??= {};
             await insertGasPrice(this._providerL1(), tx.overrides);
@@ -423,7 +427,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 );
             }
 
-            const baseCost = await zksyncContract.l2TransactionBaseCost(
+            const baseCost = await bridgehub.l2TransactionBaseCost(
+                (await this._providerL2().getNetwork()).chainId,
                 gasPriceForMessages,
                 l2GasLimit,
                 tx.gasPerPubdataByte,
@@ -550,6 +555,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 // the withdrawal request is processed through the WETH bridge.
                 if (withdrawTo.toLowerCase() == l1Bridges.weth.address.toLowerCase()) {
                     return await l1Bridges.weth.finalizeWithdrawal(
+                        (await this._providerL2().getNetwork()).chainId,
                         l1BatchNumber,
                         l2MessageIndex,
                         l2TxNumberInBlock,
@@ -560,9 +566,10 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 }
 
                 const contractAddress = await this._providerL2().getMainContractAddress();
-                const zksync = IZkSyncFactory.connect(contractAddress, this._signerL1());
+                const bridgehub = IBridgehubFactory.connect(contractAddress, this._signerL1());
 
-                return await zksync.finalizeEthWithdrawal(
+                return await bridgehub.finalizeEthWithdrawal(
+                    (await this._providerL2().getNetwork()).chainId,
                     l1BatchNumber,
                     l2MessageIndex,
                     l2TxNumberInBlock,
@@ -575,6 +582,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const l2Bridge = IL2BridgeFactory.connect(sender, this._providerL2());
             const l1Bridge = IL1BridgeFactory.connect(await l2Bridge.l1Bridge(), this._signerL1());
             return await l1Bridge.finalizeWithdrawal(
+                (await this._providerL2().getNetwork()).chainId,
                 l1BatchNumber,
                 l2MessageIndex,
                 l2TxNumberInBlock,
@@ -593,17 +601,18 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             // which is returned as `proof.id`.
             const proof = await this._providerL2().getLogProof(withdrawalHash, l2ToL1LogIndex);
 
+            const chainId = (await this._providerL2().getNetwork()).chainId;
             if (isETH(sender)) {
                 const contractAddress = await this._providerL2().getMainContractAddress();
-                const zksync = IZkSyncFactory.connect(contractAddress, this._signerL1());
+                const bridgehub = IBridgehubFactory.connect(contractAddress, this._signerL1());
 
-                return await zksync.isEthWithdrawalFinalized(log.l1BatchNumber, proof.id);
+                return await bridgehub.isEthWithdrawalFinalized(chainId, log.l1BatchNumber, proof.id);
             }
 
             const l2Bridge = IL2BridgeFactory.connect(sender, this._providerL2());
             const l1Bridge = IL1BridgeFactory.connect(await l2Bridge.l1Bridge(), this._providerL1());
 
-            return await l1Bridge.isWithdrawalFinalized(log.l1BatchNumber, proof.id);
+            return await l1Bridge.isWithdrawalFinalized(chainId, log.l1BatchNumber, proof.id);
         }
 
         async claimFailedDeposit(depositHash: BytesLike, overrides?: ethers.Overrides) {
@@ -632,6 +641,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
             const proof = await this._providerL2().getLogProof(depositHash, successL2ToL1LogIndex);
             return await l1Bridge.claimFailedDeposit(
+                (await this._providerL2().getNetwork()).chainId,
                 calldata["_l1Sender"],
                 calldata["_l1Token"],
                 depositHash,
@@ -691,7 +701,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             refundRecipient?: Address;
             overrides?: ethers.PayableOverrides;
         }): Promise<ethers.PopulatedTransaction> {
-            const zksyncContract = await this.getMainContract();
+            const bridgehub = await this.getMainContract();
 
             const { ...tx } = transaction;
             tx.l2Value ??= BigNumber.from(0);
@@ -727,7 +737,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
             await checkBaseCost(baseCost, overrides.value);
 
-            return await zksyncContract.populateTransaction.requestL2Transaction(
+            return await bridgehub.populateTransaction.requestL2Transaction(
+                (await this._providerL2().getNetwork()).chainId,
                 contractAddress,
                 l2Value,
                 calldata,

@@ -23,10 +23,10 @@ import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
 interface IL1BridgeInterface extends ethers.utils.Interface {
   functions: {
-    "claimFailedDeposit(address,address,bytes32,uint256,uint256,uint16,bytes32[])": FunctionFragment;
-    "deposit(address,address,uint256,uint256,uint256,address)": FunctionFragment;
-    "finalizeWithdrawal(uint256,uint256,uint16,bytes,bytes32[])": FunctionFragment;
-    "isWithdrawalFinalized(uint256,uint256)": FunctionFragment;
+    "claimFailedDeposit(uint256,address,address,bytes32,uint256,uint256,uint16,bytes32[])": FunctionFragment;
+    "deposit(uint256,address,address,uint256,uint256,uint256,address)": FunctionFragment;
+    "finalizeWithdrawal(uint256,uint256,uint256,uint16,bytes,bytes32[])": FunctionFragment;
+    "isWithdrawalFinalized(uint256,uint256,uint256)": FunctionFragment;
     "l2Bridge()": FunctionFragment;
     "l2TokenAddress(address)": FunctionFragment;
   };
@@ -34,6 +34,7 @@ interface IL1BridgeInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "claimFailedDeposit",
     values: [
+      BigNumberish,
       string,
       string,
       BytesLike,
@@ -45,15 +46,30 @@ interface IL1BridgeInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "deposit",
-    values: [string, string, BigNumberish, BigNumberish, BigNumberish, string]
+    values: [
+      BigNumberish,
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      string
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "finalizeWithdrawal",
-    values: [BigNumberish, BigNumberish, BigNumberish, BytesLike, BytesLike[]]
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "isWithdrawalFinalized",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "l2Bridge", values?: undefined): string;
   encodeFunctionData(
@@ -106,28 +122,31 @@ export class IL1Bridge extends Contract {
 
   functions: {
     claimFailedDeposit(
+      _chainId: BigNumberish,
       _depositSender: string,
       _l1Token: string,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "claimFailedDeposit(address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+    "claimFailedDeposit(uint256,address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+      _chainId: BigNumberish,
       _depositSender: string,
       _l1Token: string,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
     deposit(
+      _chainId: BigNumberish,
       _l2Receiver: string,
       _l1Token: string,
       _amount: BigNumberish,
@@ -137,7 +156,8 @@ export class IL1Bridge extends Contract {
       overrides?: PayableOverrides
     ): Promise<ContractTransaction>;
 
-    "deposit(address,address,uint256,uint256,uint256,address)"(
+    "deposit(uint256,address,address,uint256,uint256,uint256,address)"(
+      _chainId: BigNumberish,
       _l2Receiver: string,
       _l1Token: string,
       _amount: BigNumberish,
@@ -148,33 +168,37 @@ export class IL1Bridge extends Contract {
     ): Promise<ContractTransaction>;
 
     finalizeWithdrawal(
-      _l2BlockNumber: BigNumberish,
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
-    "finalizeWithdrawal(uint256,uint256,uint16,bytes,bytes32[])"(
-      _l2BlockNumber: BigNumberish,
+    "finalizeWithdrawal(uint256,uint256,uint256,uint16,bytes,bytes32[])"(
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<ContractTransaction>;
 
     isWithdrawalFinalized(
-      _l2BlockNumber: BigNumberish,
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
       0: boolean;
     }>;
 
-    "isWithdrawalFinalized(uint256,uint256)"(
-      _l2BlockNumber: BigNumberish,
+    "isWithdrawalFinalized(uint256,uint256,uint256)"(
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<{
@@ -205,28 +229,31 @@ export class IL1Bridge extends Contract {
   };
 
   claimFailedDeposit(
+    _chainId: BigNumberish,
     _depositSender: string,
     _l1Token: string,
     _l2TxHash: BytesLike,
-    _l2BlockNumber: BigNumberish,
+    _l2BatchNumber: BigNumberish,
     _l2MessageIndex: BigNumberish,
-    _l2TxNumberInBlock: BigNumberish,
+    _l2TxNumberInBatch: BigNumberish,
     _merkleProof: BytesLike[],
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "claimFailedDeposit(address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+  "claimFailedDeposit(uint256,address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+    _chainId: BigNumberish,
     _depositSender: string,
     _l1Token: string,
     _l2TxHash: BytesLike,
-    _l2BlockNumber: BigNumberish,
+    _l2BatchNumber: BigNumberish,
     _l2MessageIndex: BigNumberish,
-    _l2TxNumberInBlock: BigNumberish,
+    _l2TxNumberInBatch: BigNumberish,
     _merkleProof: BytesLike[],
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
   deposit(
+    _chainId: BigNumberish,
     _l2Receiver: string,
     _l1Token: string,
     _amount: BigNumberish,
@@ -236,7 +263,8 @@ export class IL1Bridge extends Contract {
     overrides?: PayableOverrides
   ): Promise<ContractTransaction>;
 
-  "deposit(address,address,uint256,uint256,uint256,address)"(
+  "deposit(uint256,address,address,uint256,uint256,uint256,address)"(
+    _chainId: BigNumberish,
     _l2Receiver: string,
     _l1Token: string,
     _amount: BigNumberish,
@@ -247,31 +275,35 @@ export class IL1Bridge extends Contract {
   ): Promise<ContractTransaction>;
 
   finalizeWithdrawal(
-    _l2BlockNumber: BigNumberish,
+    _chainId: BigNumberish,
+    _l2BatchNumber: BigNumberish,
     _l2MessageIndex: BigNumberish,
-    _l2TxNumberInBlock: BigNumberish,
+    _l2TxNumberInBatch: BigNumberish,
     _message: BytesLike,
     _merkleProof: BytesLike[],
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
-  "finalizeWithdrawal(uint256,uint256,uint16,bytes,bytes32[])"(
-    _l2BlockNumber: BigNumberish,
+  "finalizeWithdrawal(uint256,uint256,uint256,uint16,bytes,bytes32[])"(
+    _chainId: BigNumberish,
+    _l2BatchNumber: BigNumberish,
     _l2MessageIndex: BigNumberish,
-    _l2TxNumberInBlock: BigNumberish,
+    _l2TxNumberInBatch: BigNumberish,
     _message: BytesLike,
     _merkleProof: BytesLike[],
     overrides?: Overrides
   ): Promise<ContractTransaction>;
 
   isWithdrawalFinalized(
-    _l2BlockNumber: BigNumberish,
+    chainId: BigNumberish,
+    _l2BatchNumber: BigNumberish,
     _l2MessageIndex: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  "isWithdrawalFinalized(uint256,uint256)"(
-    _l2BlockNumber: BigNumberish,
+  "isWithdrawalFinalized(uint256,uint256,uint256)"(
+    chainId: BigNumberish,
+    _l2BatchNumber: BigNumberish,
     _l2MessageIndex: BigNumberish,
     overrides?: CallOverrides
   ): Promise<boolean>;
@@ -289,28 +321,31 @@ export class IL1Bridge extends Contract {
 
   callStatic: {
     claimFailedDeposit(
+      _chainId: BigNumberish,
       _depositSender: string,
       _l1Token: string,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "claimFailedDeposit(address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+    "claimFailedDeposit(uint256,address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+      _chainId: BigNumberish,
       _depositSender: string,
       _l1Token: string,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       overrides?: CallOverrides
     ): Promise<void>;
 
     deposit(
+      _chainId: BigNumberish,
       _l2Receiver: string,
       _l1Token: string,
       _amount: BigNumberish,
@@ -320,7 +355,8 @@ export class IL1Bridge extends Contract {
       overrides?: CallOverrides
     ): Promise<string>;
 
-    "deposit(address,address,uint256,uint256,uint256,address)"(
+    "deposit(uint256,address,address,uint256,uint256,uint256,address)"(
+      _chainId: BigNumberish,
       _l2Receiver: string,
       _l1Token: string,
       _amount: BigNumberish,
@@ -331,31 +367,35 @@ export class IL1Bridge extends Contract {
     ): Promise<string>;
 
     finalizeWithdrawal(
-      _l2BlockNumber: BigNumberish,
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "finalizeWithdrawal(uint256,uint256,uint16,bytes,bytes32[])"(
-      _l2BlockNumber: BigNumberish,
+    "finalizeWithdrawal(uint256,uint256,uint256,uint16,bytes,bytes32[])"(
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[],
       overrides?: CallOverrides
     ): Promise<void>;
 
     isWithdrawalFinalized(
-      _l2BlockNumber: BigNumberish,
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    "isWithdrawalFinalized(uint256,uint256)"(
-      _l2BlockNumber: BigNumberish,
+    "isWithdrawalFinalized(uint256,uint256,uint256)"(
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
@@ -399,28 +439,31 @@ export class IL1Bridge extends Contract {
 
   estimateGas: {
     claimFailedDeposit(
+      _chainId: BigNumberish,
       _depositSender: string,
       _l1Token: string,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "claimFailedDeposit(address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+    "claimFailedDeposit(uint256,address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+      _chainId: BigNumberish,
       _depositSender: string,
       _l1Token: string,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<BigNumber>;
 
     deposit(
+      _chainId: BigNumberish,
       _l2Receiver: string,
       _l1Token: string,
       _amount: BigNumberish,
@@ -430,7 +473,8 @@ export class IL1Bridge extends Contract {
       overrides?: PayableOverrides
     ): Promise<BigNumber>;
 
-    "deposit(address,address,uint256,uint256,uint256,address)"(
+    "deposit(uint256,address,address,uint256,uint256,uint256,address)"(
+      _chainId: BigNumberish,
       _l2Receiver: string,
       _l1Token: string,
       _amount: BigNumberish,
@@ -441,31 +485,35 @@ export class IL1Bridge extends Contract {
     ): Promise<BigNumber>;
 
     finalizeWithdrawal(
-      _l2BlockNumber: BigNumberish,
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<BigNumber>;
 
-    "finalizeWithdrawal(uint256,uint256,uint16,bytes,bytes32[])"(
-      _l2BlockNumber: BigNumberish,
+    "finalizeWithdrawal(uint256,uint256,uint256,uint16,bytes,bytes32[])"(
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<BigNumber>;
 
     isWithdrawalFinalized(
-      _l2BlockNumber: BigNumberish,
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    "isWithdrawalFinalized(uint256,uint256)"(
-      _l2BlockNumber: BigNumberish,
+    "isWithdrawalFinalized(uint256,uint256,uint256)"(
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -487,28 +535,31 @@ export class IL1Bridge extends Contract {
 
   populateTransaction: {
     claimFailedDeposit(
+      _chainId: BigNumberish,
       _depositSender: string,
       _l1Token: string,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "claimFailedDeposit(address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+    "claimFailedDeposit(uint256,address,address,bytes32,uint256,uint256,uint16,bytes32[])"(
+      _chainId: BigNumberish,
       _depositSender: string,
       _l1Token: string,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     deposit(
+      _chainId: BigNumberish,
       _l2Receiver: string,
       _l1Token: string,
       _amount: BigNumberish,
@@ -518,7 +569,8 @@ export class IL1Bridge extends Contract {
       overrides?: PayableOverrides
     ): Promise<PopulatedTransaction>;
 
-    "deposit(address,address,uint256,uint256,uint256,address)"(
+    "deposit(uint256,address,address,uint256,uint256,uint256,address)"(
+      _chainId: BigNumberish,
       _l2Receiver: string,
       _l1Token: string,
       _amount: BigNumberish,
@@ -529,31 +581,35 @@ export class IL1Bridge extends Contract {
     ): Promise<PopulatedTransaction>;
 
     finalizeWithdrawal(
-      _l2BlockNumber: BigNumberish,
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
-    "finalizeWithdrawal(uint256,uint256,uint16,bytes,bytes32[])"(
-      _l2BlockNumber: BigNumberish,
+    "finalizeWithdrawal(uint256,uint256,uint256,uint16,bytes,bytes32[])"(
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[],
       overrides?: Overrides
     ): Promise<PopulatedTransaction>;
 
     isWithdrawalFinalized(
-      _l2BlockNumber: BigNumberish,
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    "isWithdrawalFinalized(uint256,uint256)"(
-      _l2BlockNumber: BigNumberish,
+    "isWithdrawalFinalized(uint256,uint256,uint256)"(
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;

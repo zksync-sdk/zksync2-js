@@ -2,6 +2,8 @@ export {ContractDeployerFactory} from './ContractDeployerFactory';
 export type {ContractDeployer} from './ContractDeployer';
 export {IAllowListFactory} from './IAllowListFactory';
 export type {IAllowList} from './IAllowList';
+export {IBridgehubFactory} from './IBridgehubFactory';
+export type {IBridgehub} from './IBridgehub';
 export {IERC20Factory} from './IERC20Factory';
 export type {IERC20} from './IERC20';
 export {IERC1271Factory} from './IERC1271Factory';
