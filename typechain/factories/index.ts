@@ -3,6 +3,7 @@
 /* eslint-disable */
 export { ContractDeployer__factory } from "./ContractDeployer__factory";
 export { IAllowList__factory } from "./IAllowList__factory";
+export { IBridgehub__factory } from "./IBridgehub__factory";
 export { IERC1271__factory } from "./IERC1271__factory";
 export { IERC20__factory } from "./IERC20__factory";
 export { IEthToken__factory } from "./IEthToken__factory";

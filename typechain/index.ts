@@ -3,6 +3,7 @@
 /* eslint-disable */
 export type { ContractDeployer } from "./ContractDeployer";
 export type { IAllowList } from "./IAllowList";
+export type { IBridgehub } from "./IBridgehub";
 export type { IERC1271 } from "./IERC1271";
 export type { IERC20 } from "./IERC20";
 export type { IEthToken } from "./IEthToken";
@@ -15,6 +16,7 @@ export type { IZkSync } from "./IZkSync";
 export * as factories from "./factories";
 export { ContractDeployer__factory } from "./factories/ContractDeployer__factory";
 export { IAllowList__factory } from "./factories/IAllowList__factory";
+export { IBridgehub__factory } from "./factories/IBridgehub__factory";
 export { IERC1271__factory } from "./factories/IERC1271__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { IEthToken__factory } from "./factories/IEthToken__factory";

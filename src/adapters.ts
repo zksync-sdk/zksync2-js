@@ -32,8 +32,8 @@ import {
     IL2Bridge,
     IL2Bridge__factory,
     INonceHolder__factory,
-    IZkSync,
-    IZkSync__factory,
+    IBridgehub,
+    IBridgehub__factory,
 } from "../typechain";
 import {
     Address,
@@ -67,9 +67,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             throw new Error("Must be implemented by the derived class!");
         }
 
-        async getMainContract(): Promise<IZkSync> {
+        async getMainContract(): Promise<IBridgehub> {
             const address = await this._providerL2().getMainContractAddress();
-            return IZkSync__factory.connect(address, this._signerL1());
+            return IBridgehub__factory.connect(address, this._signerL1());
         }
 
         async getL1BridgeContracts(): Promise<{ erc20: IL1Bridge }> {
@@ -142,12 +142,13 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             gasPerPubdataByte?: BigNumberish;
             gasPrice?: BigNumberish;
         }): Promise<bigint> {
-            const zksyncContract = await this.getMainContract();
+            const bridgehub = await this.getMainContract();
             const parameters = { ...layer1TxDefaults(), ...params };
             parameters.gasPrice ??= (await this._providerL1().getFeeData()).gasPrice as BigNumberish;
             parameters.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
 
-            return await zksyncContract.l2TransactionBaseCost(
+            return await bridgehub.l2TransactionBaseCost(
+                (await this._providerL2().getNetwork()).chainId,
                 parameters.gasPrice,
                 parameters.gasLimit,
                 parameters.gasPerPubdataByte,
@@ -292,9 +293,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             await insertGasPrice(this._providerL1(), overrides);
             const gasPriceForEstimation = overrides.maxFeePerGas || overrides.gasPrice;
 
-            const zksyncContract = await this.getMainContract();
+            const bridgehub = await this.getMainContract();
 
-            const baseCost = await zksyncContract.l2TransactionBaseCost(
+            const baseCost = await bridgehub.l2TransactionBaseCost(
                 // @ts-ignore
                 await gasPriceForEstimation,
                 tx.l2GasLimit,
@@ -314,7 +315,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 };
             } else {
                 let refundRecipient = tx.refundRecipient ?? ethers.ZeroAddress;
-                const args: [Address, Address, BigNumberish, BigNumberish, BigNumberish, Address] = [
+                const args: [BigNumberish, Address, Address, BigNumberish, BigNumberish, BigNumberish, Address] = [
+                    (await this._providerL2().getNetwork()).chainId,
                     to,
                     token,
                     amount,
@@ -345,7 +347,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const dummyAmount = 1n;
 
             const { ...tx } = transaction;
-            const zksyncContract = await this.getMainContract();
+            const bridgehub = await this.getMainContract();
 
             tx.overrides ??= {};
             await insertGasPrice(this._providerL1(), tx.overrides);
@@ -385,7 +387,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 );
             }
 
-            const baseCost = await zksyncContract.l2TransactionBaseCost(
+            const baseCost = await bridgehub.l2TransactionBaseCost(
                 // @ts-ignore
                 gasPriceForMessages,
                 l2GasLimit,
@@ -511,12 +513,14 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         ): Promise<ethers.ContractTransactionResponse> {
             const { l1BatchNumber, l2MessageIndex, l2TxNumberInBlock, message, sender, proof } =
                 await this.finalizeWithdrawalParams(withdrawalHash, index);
+            const chainId = (await this._providerL2().getNetwork()).chainId;
 
             if (isETH(sender)) {
                 const contractAddress = await this._providerL2().getMainContractAddress();
-                const zksync = IZkSync__factory.connect(contractAddress, this._signerL1());
+                const bridgehub = IBridgehub__factory.connect(contractAddress, this._signerL1());
 
-                return await zksync.finalizeEthWithdrawal(
+                return await bridgehub.finalizeEthWithdrawal(
+                    chainId,
                     l1BatchNumber as BigNumberish,
                     l2MessageIndex as BigNumberish,
                     l2TxNumberInBlock as BigNumberish,
@@ -529,6 +533,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const l2Bridge = IL2Bridge__factory.connect(sender, this._providerL2());
             const l1Bridge = IL1Bridge__factory.connect(await l2Bridge.l1Bridge(), this._signerL1());
             return await l1Bridge.finalizeWithdrawal(
+                chainId,
                 l1BatchNumber as BigNumberish,
                 l2MessageIndex as BigNumberish,
                 l2TxNumberInBlock as BigNumberish,
@@ -553,11 +558,13 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 throw new Error("Log proof not found!");
             }
 
+            const chainId = (await this._providerL2().getNetwork()).chainId;
             if (isETH(sender)) {
                 const contractAddress = await this._providerL2().getMainContractAddress();
-                const zksync = IZkSync__factory.connect(contractAddress, this._signerL1());
+                const bridgehub = IBridgehub__factory.connect(contractAddress, this._signerL1());
 
-                return await zksync.isEthWithdrawalFinalized(
+                return await bridgehub.isEthWithdrawalFinalized(
+                    chainId,
                     log.l1BatchNumber as BigNumberish,
                     proof.id,
                 );
@@ -566,7 +573,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const l2Bridge = IL2Bridge__factory.connect(sender, this._providerL2());
             const l1Bridge = IL1Bridge__factory.connect(await l2Bridge.l1Bridge(), this._providerL1());
 
-            return await l1Bridge.isWithdrawalFinalized(log.l1BatchNumber as BigNumberish, proof.id);
+            return await l1Bridge.isWithdrawalFinalized(chainId, log.l1BatchNumber as BigNumberish, proof.id);
         }
 
         async claimFailedDeposit(depositHash: BytesLike, overrides?: ethers.Overrides) {
@@ -599,6 +606,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 throw new Error("Log proof not found!");
             }
             return await l1Bridge.claimFailedDeposit(
+                (await this._providerL2().getNetwork()).chainId,
                 calldata["_l1Sender"],
                 calldata["_l1Token"],
                 depositHash,
@@ -658,7 +666,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             refundRecipient?: Address;
             overrides?: ethers.Overrides;
         }): Promise<EthersTransactionRequest> {
-            const zksyncContract = await this.getMainContract();
+            const bridgehub = await this.getMainContract();
 
             const { ...tx } = transaction;
             tx.l2Value ??= 0;
@@ -695,7 +703,8 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
             await checkBaseCost(baseCost, overrides.value);
 
-            return await zksyncContract.requestL2Transaction.populateTransaction(
+            return await bridgehub.requestL2Transaction.populateTransaction(
+                (await this._providerL2().getNetwork()).chainId,
                 contractAddress,
                 l2Value,
                 calldata,

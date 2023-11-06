@@ -44,6 +44,7 @@ export interface IL1BridgeInterface extends Interface {
   encodeFunctionData(
     functionFragment: "claimFailedDeposit",
     values: [
+      BigNumberish,
       AddressLike,
       AddressLike,
       BytesLike,
@@ -56,6 +57,7 @@ export interface IL1BridgeInterface extends Interface {
   encodeFunctionData(
     functionFragment: "deposit",
     values: [
+      BigNumberish,
       AddressLike,
       AddressLike,
       BigNumberish,
@@ -66,11 +68,18 @@ export interface IL1BridgeInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "finalizeWithdrawal",
-    values: [BigNumberish, BigNumberish, BigNumberish, BytesLike, BytesLike[]]
+    values: [
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "isWithdrawalFinalized",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "l2Bridge", values?: undefined): string;
   encodeFunctionData(
@@ -207,12 +216,13 @@ export interface IL1Bridge extends BaseContract {
 
   claimFailedDeposit: TypedContractMethod<
     [
+      _chainId: BigNumberish,
       _depositSender: AddressLike,
       _l1Token: AddressLike,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[]
     ],
     [void],
@@ -221,6 +231,7 @@ export interface IL1Bridge extends BaseContract {
 
   deposit: TypedContractMethod<
     [
+      _chainId: BigNumberish,
       _l2Receiver: AddressLike,
       _l1Token: AddressLike,
       _amount: BigNumberish,
@@ -234,9 +245,10 @@ export interface IL1Bridge extends BaseContract {
 
   finalizeWithdrawal: TypedContractMethod<
     [
-      _l2BlockNumber: BigNumberish,
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[]
     ],
@@ -245,7 +257,11 @@ export interface IL1Bridge extends BaseContract {
   >;
 
   isWithdrawalFinalized: TypedContractMethod<
-    [_l2BlockNumber: BigNumberish, _l2MessageIndex: BigNumberish],
+    [
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
+      _l2MessageIndex: BigNumberish
+    ],
     [boolean],
     "view"
   >;
@@ -266,12 +282,13 @@ export interface IL1Bridge extends BaseContract {
     nameOrSignature: "claimFailedDeposit"
   ): TypedContractMethod<
     [
+      _chainId: BigNumberish,
       _depositSender: AddressLike,
       _l1Token: AddressLike,
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[]
     ],
     [void],
@@ -281,6 +298,7 @@ export interface IL1Bridge extends BaseContract {
     nameOrSignature: "deposit"
   ): TypedContractMethod<
     [
+      _chainId: BigNumberish,
       _l2Receiver: AddressLike,
       _l1Token: AddressLike,
       _amount: BigNumberish,
@@ -295,9 +313,10 @@ export interface IL1Bridge extends BaseContract {
     nameOrSignature: "finalizeWithdrawal"
   ): TypedContractMethod<
     [
-      _l2BlockNumber: BigNumberish,
+      _chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[]
     ],
@@ -307,7 +326,11 @@ export interface IL1Bridge extends BaseContract {
   getFunction(
     nameOrSignature: "isWithdrawalFinalized"
   ): TypedContractMethod<
-    [_l2BlockNumber: BigNumberish, _l2MessageIndex: BigNumberish],
+    [
+      chainId: BigNumberish,
+      _l2BatchNumber: BigNumberish,
+      _l2MessageIndex: BigNumberish
+    ],
     [boolean],
     "view"
   >;
