@@ -249,7 +249,7 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }): Promise<any> {
             const bridgeContracts = await this.getL1BridgeContracts();
             if (transaction.bridgeAddress != null) {
-                bridgeContracts.erc20.attach(transaction.bridgeAddress);
+                bridgeContracts.erc20 = bridgeContracts.erc20.attach(transaction.bridgeAddress) as IL1Bridge;
             }
 
             const { ...tx } = transaction;
