@@ -72,14 +72,12 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             return IZkSync__factory.connect(address, this._signerL1());
         }
 
-        async getL1BridgeContracts(): Promise<{ erc20: IL1Bridge }> {
+        async getL1BridgeContracts(): Promise<{ erc20: IL1Bridge; weth: IL1Bridge }> {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
-            if (addresses.erc20L1) {
-                return {
-                    erc20: IL1Bridge__factory.connect(addresses.erc20L1, this._signerL1()),
-                };
-            }
-            throw new Error("Default ERC20 L1 bridge contract not found!");
+            return {
+                erc20: IL1Bridge__factory.connect(addresses.erc20L1 as string, this._signerL1()),
+                weth: IL1Bridge__factory.connect(addresses.wethL1 as string, this._signerL1()),
+            };
         }
 
         async getBalanceL1(token?: Address, blockTag?: BlockTag): Promise<bigint> {
@@ -97,8 +95,21 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             bridgeAddress?: Address,
             blockTag?: ethers.BlockTag,
         ): Promise<bigint> {
+            if (!bridgeAddress) {
+                const bridgeContracts = await this.getL1BridgeContracts();
+                let l2WethToken = ethers.ZeroAddress;
+                try {
+                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                } catch (e) {}
+
+                // If the token is Wrapped Ether, return allowance to its own bridge, otherwise to the default ERC20 bridge.
+                bridgeAddress =
+                    l2WethToken != ethers.ZeroAddress
+                        ? await bridgeContracts.weth.getAddress()
+                        : await bridgeContracts.erc20.getAddress();
+            }
+
             const erc20contract = IERC20__factory.connect(token, this._providerL1());
-            bridgeAddress ??= await (await this.getL1BridgeContracts()).erc20.getAddress();
             return await erc20contract.allowance(await this.getAddress(), bridgeAddress, {
                 blockTag,
             });
@@ -107,10 +118,16 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         async l2TokenAddress(token: Address): Promise<string> {
             if (token == ETH_ADDRESS) {
                 return ETH_ADDRESS;
-            } else {
-                const erc20Bridge = (await this.getL1BridgeContracts()).erc20;
-                return await erc20Bridge.l2TokenAddress(token);
             }
+            const bridgeContracts = await this.getL1BridgeContracts();
+            try {
+                const l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                // If the token is Wrapped Ether, return its L2 token address.
+                if (l2WethToken != ethers.ZeroAddress) {
+                    return l2WethToken;
+                }
+            } catch (e) {}
+            return await bridgeContracts.erc20.l2TokenAddress(token);
         }
 
         async approveERC20(
@@ -129,7 +146,16 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             const erc20contract = IERC20__factory.connect(token, this._signerL1());
 
             if (bridgeAddress == null) {
-                bridgeAddress = (await this._providerL2().getDefaultBridgeAddresses()).erc20L1;
+                const bridgeContracts = await this.getL1BridgeContracts();
+                let l2WethToken = ethers.ZeroAddress;
+                try {
+                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(token);
+                } catch (e) {}
+                // If the token is Wrapped Ether, return corresponding bridge, otherwise return default ERC20 bridge
+                bridgeAddress =
+                    l2WethToken != ethers.ZeroAddress
+                        ? await bridgeContracts.weth.getAddress()
+                        : await bridgeContracts.erc20.getAddress();
             } else {
                 delete overrides.bridgeAddress;
             }
@@ -181,9 +207,18 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             } else {
                 const bridgeContracts = await this.getL1BridgeContracts();
                 if (transaction.approveERC20) {
+                    let l2WethToken = ethers.ZeroAddress;
+                    try {
+                        l2WethToken = await bridgeContracts.weth.l2TokenAddress(transaction.token);
+                    } catch (e) {}
+                    // If the token is Wrapped Ether, use its bridge.
+                    const proposedBridge =
+                        l2WethToken != ethers.ZeroAddress
+                            ? await bridgeContracts.weth.getAddress()
+                            : await bridgeContracts.erc20.getAddress();
                     const bridgeAddress = transaction.bridgeAddress
                         ? transaction.bridgeAddress
-                        : await bridgeContracts.erc20.getAddress();
+                        : proposedBridge;
 
                     // We only request the allowance if the current one is not enough.
                     const allowance = await this.getAllowanceL1(transaction.token, bridgeAddress);
@@ -249,7 +284,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
         }): Promise<any> {
             const bridgeContracts = await this.getL1BridgeContracts();
             if (transaction.bridgeAddress != null) {
-                bridgeContracts.erc20 = bridgeContracts.erc20.attach(transaction.bridgeAddress) as IL1Bridge;
+                bridgeContracts.erc20 = bridgeContracts.erc20.attach(
+                    transaction.bridgeAddress,
+                ) as IL1Bridge;
             }
 
             const { ...tx } = transaction;
@@ -260,8 +297,9 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
             tx.gasPerPubdataByte ??= REQUIRED_L1_TO_L2_GAS_PER_PUBDATA_LIMIT;
             if (tx.bridgeAddress != null) {
                 const customBridgeData =
-                    tx.customBridgeData ??
-                    (await getERC20DefaultBridgeData(tx.token, this._providerL1()));
+                    tx.customBridgeData ?? (await bridgeContracts.weth.getAddress()) == tx.bridgeAddress
+                        ? "0x"
+                        : await getERC20DefaultBridgeData(tx.token, this._providerL1());
                 let bridge = IL1Bridge__factory.connect(tx.bridgeAddress, this._signerL1());
                 let l2Address = await bridge.l2Bridge();
                 tx.l2GasLimit ??= await estimateCustomBridgeDepositL2Gas(
@@ -327,7 +365,15 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 await checkBaseCost(baseCost, overrides.value);
                 overrides.from ??= await this.getAddress();
 
-                return await bridgeContracts.erc20.deposit.populateTransaction(...args, overrides);
+                let l2WethToken = ethers.ZeroAddress;
+                try {
+                    l2WethToken = await bridgeContracts.weth.l2TokenAddress(tx.token);
+                } catch (e) {}
+
+                const bridge =
+                    l2WethToken != ethers.ZeroAddress ? bridgeContracts.weth : bridgeContracts.erc20;
+
+                return await bridge.deposit.populateTransaction(...args, overrides);
             }
         }
 
@@ -357,9 +403,11 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
 
             let l2GasLimit = null;
             if (tx.bridgeAddress != null) {
+                const bridgeContracts = await this.getL1BridgeContracts();
                 const customBridgeData =
-                    tx.customBridgeData ??
-                    (await getERC20DefaultBridgeData(tx.token, this._providerL1()));
+                    tx.customBridgeData ?? (await bridgeContracts.weth.getAddress()) == tx.bridgeAddress
+                        ? "0x"
+                        : await getERC20DefaultBridgeData(tx.token, this._providerL1());
                 let bridge = IL1Bridge__factory.connect(tx.bridgeAddress, this._signerL1());
                 let l2Address = await bridge.l2Bridge();
                 l2GasLimit ??= await estimateCustomBridgeDepositL2Gas(
@@ -513,6 +561,21 @@ export function AdapterL1<TBase extends Constructor<TxSender>>(Base: TBase) {
                 await this.finalizeWithdrawalParams(withdrawalHash, index);
 
             if (isETH(sender)) {
+                const withdrawTo = ethers.dataSlice(message, 4, 24);
+                const l1Bridges = await this.getL1BridgeContracts();
+                // If the destination address matches the address of the L1 WETH contract,
+                // the withdrawal request is processed through the WETH bridge.
+                if (withdrawTo.toLowerCase() == (await l1Bridges.weth.getAddress()).toLowerCase()) {
+                    return await l1Bridges.weth.finalizeWithdrawal(
+                        l1BatchNumber as number,
+                        l2MessageIndex,
+                        l2TxNumberInBlock as number,
+                        message,
+                        proof,
+                        overrides ?? {},
+                    );
+                }
+
                 const contractAddress = await this._providerL2().getMainContractAddress();
                 const zksync = IZkSync__factory.connect(contractAddress, this._signerL1());
 
@@ -734,14 +797,12 @@ export function AdapterL2<TBase extends Constructor<TxSender>>(Base: TBase) {
             ).getDeploymentNonce(await this.getAddress());
         }
 
-        async getL2BridgeContracts(): Promise<{ erc20: IL2Bridge }> {
+        async getL2BridgeContracts(): Promise<{ erc20: IL2Bridge; weth: IL2Bridge }> {
             const addresses = await this._providerL2().getDefaultBridgeAddresses();
-            if (addresses.erc20L2) {
-                return {
-                    erc20: IL2Bridge__factory.connect(addresses.erc20L2, this._signerL2()),
-                };
-            }
-            throw new Error("Default ERC20 L2 bridge contract not found!");
+            return {
+                erc20: IL2Bridge__factory.connect(addresses.erc20L2 as string, this._signerL2()),
+                weth: IL2Bridge__factory.connect(addresses.wethL2 as string, this._signerL2()),
+            };
         }
 
         _fillCustomData(data: Eip712Meta): Eip712Meta {

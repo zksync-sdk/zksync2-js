@@ -9,7 +9,7 @@ to be changed.
 While most of the existing SDKs should work out of the box, deploying smart contracts or using unique zkSync features,
 like account abstraction, requires providing additional fields to those that Ethereum transactions have by default.
 
-The library is made in such a way that after replacing `ethers` with `zksync-web3` most client apps will work out of
+The library is made in such a way that after replacing `ethers` with `zksync2-js` most client apps will work out of
 box.
 
 🔗 For a detailed walkthrough, refer to the [official documentation](https://era.zksync.io/docs/api/js/zksync2-js).
@@ -37,6 +37,8 @@ yarn add ethers@6 # ethers is a peer dependency of zksync2-js
 ```
 
 ## 📝 Examples
+
+The complete examples with various use cases are available [here](https://github.com/zksync-sdk/zksync2-examples/tree/main/js).
 
 ### Connect to the zkSync Era network:
 
