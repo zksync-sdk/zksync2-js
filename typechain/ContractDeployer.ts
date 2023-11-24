@@ -67,6 +67,7 @@ export interface ContractDeployerInterface extends Interface {
       | "create2Account"
       | "createAccount"
       | "extendedAccountVersion"
+      | "forceDeployKeccak256"
       | "forceDeployOnAddress"
       | "forceDeployOnAddresses"
       | "getAccountInfo"
@@ -102,6 +103,10 @@ export interface ContractDeployerInterface extends Interface {
   encodeFunctionData(
     functionFragment: "extendedAccountVersion",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "forceDeployKeccak256",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "forceDeployOnAddress",
@@ -144,6 +149,10 @@ export interface ContractDeployerInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "extendedAccountVersion",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "forceDeployKeccak256",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -313,6 +322,12 @@ export interface ContractDeployer extends BaseContract {
     "view"
   >;
 
+  forceDeployKeccak256: TypedContractMethod<
+    [_keccak256BytecodeHash: BytesLike],
+    [void],
+    "payable"
+  >;
+
   forceDeployOnAddress: TypedContractMethod<
     [_deployment: ContractDeployer.ForceDeploymentStruct, _sender: AddressLike],
     [void],
@@ -405,6 +420,13 @@ export interface ContractDeployer extends BaseContract {
   getFunction(
     nameOrSignature: "extendedAccountVersion"
   ): TypedContractMethod<[_address: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "forceDeployKeccak256"
+  ): TypedContractMethod<
+    [_keccak256BytecodeHash: BytesLike],
+    [void],
+    "payable"
+  >;
   getFunction(
     nameOrSignature: "forceDeployOnAddress"
   ): TypedContractMethod<

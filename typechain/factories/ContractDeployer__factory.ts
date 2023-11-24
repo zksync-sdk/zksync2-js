@@ -220,6 +220,19 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bytes32",
+        name: "_keccak256BytecodeHash",
+        type: "bytes32",
+      },
+    ],
+    name: "forceDeployKeccak256",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         components: [
           {
             internalType: "bytes32",

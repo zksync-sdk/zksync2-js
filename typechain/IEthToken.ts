@@ -34,10 +34,15 @@ export interface IEthTokenInterface extends Interface {
       | "totalSupply"
       | "transferFromTo"
       | "withdraw"
+      | "withdrawWithMessage"
   ): FunctionFragment;
 
   getEvent(
-    nameOrSignatureOrTopic: "Mint" | "Transfer" | "Withdrawal"
+    nameOrSignatureOrTopic:
+      | "Mint"
+      | "Transfer"
+      | "Withdrawal"
+      | "WithdrawalWithMessage"
   ): EventFragment;
 
   encodeFunctionData(
@@ -63,6 +68,10 @@ export interface IEthTokenInterface extends Interface {
     functionFragment: "withdraw",
     values: [AddressLike]
   ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawWithMessage",
+    values: [AddressLike, BytesLike]
+  ): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
@@ -78,6 +87,10 @@ export interface IEthTokenInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawWithMessage",
+    data: BytesLike
+  ): Result;
 }
 
 export namespace MintEvent {
@@ -126,6 +139,31 @@ export namespace WithdrawalEvent {
     _l2Sender: string;
     _l1Receiver: string;
     _amount: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace WithdrawalWithMessageEvent {
+  export type InputTuple = [
+    _l2Sender: AddressLike,
+    _l1Receiver: AddressLike,
+    _amount: BigNumberish,
+    _additionalData: BytesLike
+  ];
+  export type OutputTuple = [
+    _l2Sender: string,
+    _l1Receiver: string,
+    _amount: bigint,
+    _additionalData: string
+  ];
+  export interface OutputObject {
+    _l2Sender: string;
+    _l1Receiver: string;
+    _amount: bigint;
+    _additionalData: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -200,6 +238,12 @@ export interface IEthToken extends BaseContract {
 
   withdraw: TypedContractMethod<[_l1Receiver: AddressLike], [void], "payable">;
 
+  withdrawWithMessage: TypedContractMethod<
+    [_l1Receiver: AddressLike, _additionalData: BytesLike],
+    [void],
+    "payable"
+  >;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -236,6 +280,13 @@ export interface IEthToken extends BaseContract {
   getFunction(
     nameOrSignature: "withdraw"
   ): TypedContractMethod<[_l1Receiver: AddressLike], [void], "payable">;
+  getFunction(
+    nameOrSignature: "withdrawWithMessage"
+  ): TypedContractMethod<
+    [_l1Receiver: AddressLike, _additionalData: BytesLike],
+    [void],
+    "payable"
+  >;
 
   getEvent(
     key: "Mint"
@@ -257,6 +308,13 @@ export interface IEthToken extends BaseContract {
     WithdrawalEvent.InputTuple,
     WithdrawalEvent.OutputTuple,
     WithdrawalEvent.OutputObject
+  >;
+  getEvent(
+    key: "WithdrawalWithMessage"
+  ): TypedContractEvent<
+    WithdrawalWithMessageEvent.InputTuple,
+    WithdrawalWithMessageEvent.OutputTuple,
+    WithdrawalWithMessageEvent.OutputObject
   >;
 
   filters: {
@@ -291,6 +349,17 @@ export interface IEthToken extends BaseContract {
       WithdrawalEvent.InputTuple,
       WithdrawalEvent.OutputTuple,
       WithdrawalEvent.OutputObject
+    >;
+
+    "WithdrawalWithMessage(address,address,uint256,bytes)": TypedContractEvent<
+      WithdrawalWithMessageEvent.InputTuple,
+      WithdrawalWithMessageEvent.OutputTuple,
+      WithdrawalWithMessageEvent.OutputObject
+    >;
+    WithdrawalWithMessage: TypedContractEvent<
+      WithdrawalWithMessageEvent.InputTuple,
+      WithdrawalWithMessageEvent.OutputTuple,
+      WithdrawalWithMessageEvent.OutputObject
     >;
   };
 }
