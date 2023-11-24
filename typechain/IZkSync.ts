@@ -54,7 +54,7 @@ export type PriorityOperationStructOutput = [
 export type L2LogStruct = {
   l2ShardId: BigNumberish;
   isService: boolean;
-  txNumberInBlock: BigNumberish;
+  txNumberInBatch: BigNumberish;
   sender: AddressLike;
   key: BytesLike;
   value: BytesLike;
@@ -63,30 +63,67 @@ export type L2LogStruct = {
 export type L2LogStructOutput = [
   l2ShardId: bigint,
   isService: boolean,
-  txNumberInBlock: bigint,
+  txNumberInBatch: bigint,
   sender: string,
   key: string,
   value: string
 ] & {
   l2ShardId: bigint;
   isService: boolean;
-  txNumberInBlock: bigint;
+  txNumberInBatch: bigint;
   sender: string;
   key: string;
   value: string;
 };
 
 export type L2MessageStruct = {
-  txNumberInBlock: BigNumberish;
+  txNumberInBatch: BigNumberish;
   sender: AddressLike;
   data: BytesLike;
 };
 
 export type L2MessageStructOutput = [
-  txNumberInBlock: bigint,
+  txNumberInBatch: bigint,
   sender: string,
   data: string
-] & { txNumberInBlock: bigint; sender: string; data: string };
+] & { txNumberInBatch: bigint; sender: string; data: string };
+
+export declare namespace Diamond {
+  export type FacetCutStruct = {
+    facet: AddressLike;
+    action: BigNumberish;
+    isFreezable: boolean;
+    selectors: BytesLike[];
+  };
+
+  export type FacetCutStructOutput = [
+    facet: string,
+    action: bigint,
+    isFreezable: boolean,
+    selectors: string[]
+  ] & {
+    facet: string;
+    action: bigint;
+    isFreezable: boolean;
+    selectors: string[];
+  };
+
+  export type DiamondCutDataStruct = {
+    facetCuts: Diamond.FacetCutStruct[];
+    initAddress: AddressLike;
+    initCalldata: BytesLike;
+  };
+
+  export type DiamondCutDataStructOutput = [
+    facetCuts: Diamond.FacetCutStructOutput[],
+    initAddress: string,
+    initCalldata: string
+  ] & {
+    facetCuts: Diamond.FacetCutStructOutput[];
+    initAddress: string;
+    initCalldata: string;
+  };
+}
 
 export declare namespace IMailbox {
   export type L2CanonicalTransactionStruct = {
@@ -145,47 +182,10 @@ export declare namespace IMailbox {
   };
 }
 
-export declare namespace Diamond {
-  export type FacetCutStruct = {
-    facet: AddressLike;
-    action: BigNumberish;
-    isFreezable: boolean;
-    selectors: BytesLike[];
-  };
-
-  export type FacetCutStructOutput = [
-    facet: string,
-    action: bigint,
-    isFreezable: boolean,
-    selectors: string[]
-  ] & {
-    facet: string;
-    action: bigint;
-    isFreezable: boolean;
-    selectors: string[];
-  };
-
-  export type DiamondCutDataStruct = {
-    facetCuts: Diamond.FacetCutStruct[];
-    initAddress: AddressLike;
-    initCalldata: BytesLike;
-  };
-
-  export type DiamondCutDataStructOutput = [
-    facetCuts: Diamond.FacetCutStructOutput[],
-    initAddress: string,
-    initCalldata: string
-  ] & {
-    facetCuts: Diamond.FacetCutStructOutput[];
-    initAddress: string;
-    initCalldata: string;
-  };
-}
-
 export declare namespace IExecutor {
-  export type StoredBlockInfoStruct = {
-    blockNumber: BigNumberish;
-    blockHash: BytesLike;
+  export type StoredBatchInfoStruct = {
+    batchNumber: BigNumberish;
+    batchHash: BytesLike;
     indexRepeatedStorageChanges: BigNumberish;
     numberOfLayer1Txs: BigNumberish;
     priorityOperationsHash: BytesLike;
@@ -194,9 +194,9 @@ export declare namespace IExecutor {
     commitment: BytesLike;
   };
 
-  export type StoredBlockInfoStructOutput = [
-    blockNumber: bigint,
-    blockHash: string,
+  export type StoredBatchInfoStructOutput = [
+    batchNumber: bigint,
+    batchHash: string,
     indexRepeatedStorageChanges: bigint,
     numberOfLayer1Txs: bigint,
     priorityOperationsHash: string,
@@ -204,8 +204,8 @@ export declare namespace IExecutor {
     timestamp: bigint,
     commitment: string
   ] & {
-    blockNumber: bigint;
-    blockHash: string;
+    batchNumber: bigint;
+    batchHash: string;
     indexRepeatedStorageChanges: bigint;
     numberOfLayer1Txs: bigint;
     priorityOperationsHash: string;
@@ -214,47 +214,41 @@ export declare namespace IExecutor {
     commitment: string;
   };
 
-  export type CommitBlockInfoStruct = {
-    blockNumber: BigNumberish;
+  export type CommitBatchInfoStruct = {
+    batchNumber: BigNumberish;
     timestamp: BigNumberish;
     indexRepeatedStorageChanges: BigNumberish;
     newStateRoot: BytesLike;
     numberOfLayer1Txs: BigNumberish;
-    l2LogsTreeRoot: BytesLike;
     priorityOperationsHash: BytesLike;
-    initialStorageChanges: BytesLike;
-    repeatedStorageChanges: BytesLike;
-    l2Logs: BytesLike;
-    l2ArbitraryLengthMessages: BytesLike[];
-    factoryDeps: BytesLike[];
+    bootloaderHeapInitialContentsHash: BytesLike;
+    eventsQueueStateHash: BytesLike;
+    systemLogs: BytesLike;
+    totalL2ToL1Pubdata: BytesLike;
   };
 
-  export type CommitBlockInfoStructOutput = [
-    blockNumber: bigint,
+  export type CommitBatchInfoStructOutput = [
+    batchNumber: bigint,
     timestamp: bigint,
     indexRepeatedStorageChanges: bigint,
     newStateRoot: string,
     numberOfLayer1Txs: bigint,
-    l2LogsTreeRoot: string,
     priorityOperationsHash: string,
-    initialStorageChanges: string,
-    repeatedStorageChanges: string,
-    l2Logs: string,
-    l2ArbitraryLengthMessages: string[],
-    factoryDeps: string[]
+    bootloaderHeapInitialContentsHash: string,
+    eventsQueueStateHash: string,
+    systemLogs: string,
+    totalL2ToL1Pubdata: string
   ] & {
-    blockNumber: bigint;
+    batchNumber: bigint;
     timestamp: bigint;
     indexRepeatedStorageChanges: bigint;
     newStateRoot: string;
     numberOfLayer1Txs: bigint;
-    l2LogsTreeRoot: string;
     priorityOperationsHash: string;
-    initialStorageChanges: string;
-    repeatedStorageChanges: string;
-    l2Logs: string;
-    l2ArbitraryLengthMessages: string[];
-    factoryDeps: string[];
+    bootloaderHeapInitialContentsHash: string;
+    eventsQueueStateHash: string;
+    systemLogs: string;
+    totalL2ToL1Pubdata: string;
   };
 
   export type ProofInputStruct = {
@@ -280,10 +274,10 @@ export declare namespace IGetters {
 export interface IZkSyncInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "acceptAdmin"
       | "acceptGovernor"
-      | "cancelUpgradeProposal"
-      | "commitBlocks"
-      | "executeBlocks"
+      | "commitBatches"
+      | "executeBatches"
       | "executeUpgrade"
       | "facetAddress"
       | "facetAddresses"
@@ -292,25 +286,23 @@ export interface IZkSyncInterface extends Interface {
       | "finalizeEthWithdrawal"
       | "freezeDiamond"
       | "getAllowList"
-      | "getCurrentProposalId"
       | "getFirstUnprocessedPriorityTx"
       | "getGovernor"
       | "getL2BootloaderBytecodeHash"
       | "getL2DefaultAccountBytecodeHash"
+      | "getL2SystemContractsUpgradeBatchNumber"
+      | "getL2SystemContractsUpgradeTxHash"
+      | "getName"
       | "getPendingGovernor"
       | "getPriorityQueueSize"
       | "getPriorityTxMaxGasLimit"
-      | "getProposedUpgradeHash"
-      | "getProposedUpgradeTimestamp"
-      | "getSecurityCouncil"
-      | "getTotalBlocksCommitted"
-      | "getTotalBlocksExecuted"
-      | "getTotalBlocksVerified"
+      | "getProtocolVersion"
+      | "getTotalBatchesCommitted"
+      | "getTotalBatchesExecuted"
+      | "getTotalBatchesVerified"
       | "getTotalPriorityTxs"
-      | "getUpgradeProposalState"
       | "getVerifier"
       | "getVerifierParams"
-      | "isApprovedBySecurityCouncil"
       | "isDiamondStorageFrozen"
       | "isEthWithdrawalFinalized"
       | "isFacetFreezable"
@@ -319,27 +311,19 @@ export interface IZkSyncInterface extends Interface {
       | "l2LogsRootHash"
       | "l2TransactionBaseCost"
       | "priorityQueueFrontOperation"
-      | "proposeShadowUpgrade"
-      | "proposeTransparentUpgrade"
-      | "proveBlocks"
+      | "proveBatches"
       | "proveL1ToL2TransactionStatus"
       | "proveL2LogInclusion"
       | "proveL2MessageInclusion"
       | "requestL2Transaction"
-      | "revertBlocks"
-      | "securityCouncilUpgradeApprove"
-      | "setAllowList"
-      | "setL2BootloaderBytecodeHash"
-      | "setL2DefaultAccountBytecodeHash"
+      | "revertBatches"
+      | "setPendingAdmin"
       | "setPendingGovernor"
       | "setPorterAvailability"
       | "setPriorityTxMaxGasLimit"
       | "setValidator"
-      | "setVerifier"
-      | "setVerifierParams"
-      | "storedBlockHash"
+      | "storedBatchHash"
       | "unfreezeDiamond"
-      | "upgradeProposalHash"
   ): FunctionFragment;
 
   getEvent(
@@ -348,46 +332,39 @@ export interface IZkSyncInterface extends Interface {
       | "BlockExecution"
       | "BlocksRevert"
       | "BlocksVerification"
-      | "CancelUpgradeProposal"
       | "EthWithdrawalFinalized"
       | "ExecuteUpgrade"
       | "Freeze"
       | "IsPorterAvailableStatusUpdate"
-      | "NewAllowList"
+      | "NewAdmin"
       | "NewGovernor"
-      | "NewL2BootloaderBytecodeHash"
-      | "NewL2DefaultAccountBytecodeHash"
+      | "NewPendingAdmin"
       | "NewPendingGovernor"
       | "NewPriorityRequest"
       | "NewPriorityTxMaxGasLimit"
-      | "NewVerifier"
-      | "NewVerifierParams"
-      | "ProposeShadowUpgrade"
-      | "ProposeTransparentUpgrade"
-      | "SecurityCouncilUpgradeApprove"
       | "Unfreeze"
       | "ValidatorStatusUpdate"
   ): EventFragment;
 
   encodeFunctionData(
+    functionFragment: "acceptAdmin",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "acceptGovernor",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "cancelUpgradeProposal",
-    values: [BytesLike]
+    functionFragment: "commitBatches",
+    values: [IExecutor.StoredBatchInfoStruct, IExecutor.CommitBatchInfoStruct[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "commitBlocks",
-    values: [IExecutor.StoredBlockInfoStruct, IExecutor.CommitBlockInfoStruct[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "executeBlocks",
-    values: [IExecutor.StoredBlockInfoStruct[]]
+    functionFragment: "executeBatches",
+    values: [IExecutor.StoredBatchInfoStruct[]]
   ): string;
   encodeFunctionData(
     functionFragment: "executeUpgrade",
-    values: [Diamond.DiamondCutDataStruct, BytesLike]
+    values: [Diamond.DiamondCutDataStruct]
   ): string;
   encodeFunctionData(
     functionFragment: "facetAddress",
@@ -415,10 +392,6 @@ export interface IZkSyncInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getCurrentProposalId",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getFirstUnprocessedPriorityTx",
     values?: undefined
   ): string;
@@ -435,6 +408,15 @@ export interface IZkSyncInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "getL2SystemContractsUpgradeBatchNumber",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getL2SystemContractsUpgradeTxHash",
+    values?: undefined
+  ): string;
+  encodeFunctionData(functionFragment: "getName", values?: undefined): string;
+  encodeFunctionData(
     functionFragment: "getPendingGovernor",
     values?: undefined
   ): string;
@@ -447,35 +429,23 @@ export interface IZkSyncInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getProposedUpgradeHash",
+    functionFragment: "getProtocolVersion",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getProposedUpgradeTimestamp",
+    functionFragment: "getTotalBatchesCommitted",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getSecurityCouncil",
+    functionFragment: "getTotalBatchesExecuted",
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getTotalBlocksCommitted",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTotalBlocksExecuted",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getTotalBlocksVerified",
+    functionFragment: "getTotalBatchesVerified",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getTotalPriorityTxs",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getUpgradeProposalState",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -484,10 +454,6 @@ export interface IZkSyncInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getVerifierParams",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isApprovedBySecurityCouncil",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -523,18 +489,10 @@ export interface IZkSyncInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "proposeShadowUpgrade",
-    values: [BytesLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "proposeTransparentUpgrade",
-    values: [Diamond.DiamondCutDataStruct, BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "proveBlocks",
+    functionFragment: "proveBatches",
     values: [
-      IExecutor.StoredBlockInfoStruct,
-      IExecutor.StoredBlockInfoStruct[],
+      IExecutor.StoredBatchInfoStruct,
+      IExecutor.StoredBatchInfoStruct[],
       IExecutor.ProofInputStruct
     ]
   ): string;
@@ -570,24 +528,12 @@ export interface IZkSyncInterface extends Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "revertBlocks",
+    functionFragment: "revertBatches",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "securityCouncilUpgradeApprove",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setAllowList",
+    functionFragment: "setPendingAdmin",
     values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setL2BootloaderBytecodeHash",
-    values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setL2DefaultAccountBytecodeHash",
-    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "setPendingGovernor",
@@ -606,40 +552,28 @@ export interface IZkSyncInterface extends Interface {
     values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
-    functionFragment: "setVerifier",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setVerifierParams",
-    values: [VerifierParamsStruct]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "storedBlockHash",
+    functionFragment: "storedBatchHash",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "unfreezeDiamond",
     values?: undefined
   ): string;
-  encodeFunctionData(
-    functionFragment: "upgradeProposalHash",
-    values: [Diamond.DiamondCutDataStruct, BigNumberish, BytesLike]
-  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "acceptAdmin",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "acceptGovernor",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "cancelUpgradeProposal",
+    functionFragment: "commitBatches",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "commitBlocks",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "executeBlocks",
+    functionFragment: "executeBatches",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -672,10 +606,6 @@ export interface IZkSyncInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getCurrentProposalId",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "getFirstUnprocessedPriorityTx",
     data: BytesLike
   ): Result;
@@ -692,6 +622,15 @@ export interface IZkSyncInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getL2SystemContractsUpgradeBatchNumber",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getL2SystemContractsUpgradeTxHash",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getName", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "getPendingGovernor",
     data: BytesLike
   ): Result;
@@ -704,35 +643,23 @@ export interface IZkSyncInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getProposedUpgradeHash",
+    functionFragment: "getProtocolVersion",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getProposedUpgradeTimestamp",
+    functionFragment: "getTotalBatchesCommitted",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getSecurityCouncil",
+    functionFragment: "getTotalBatchesExecuted",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getTotalBlocksCommitted",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTotalBlocksExecuted",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getTotalBlocksVerified",
+    functionFragment: "getTotalBatchesVerified",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "getTotalPriorityTxs",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getUpgradeProposalState",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -741,10 +668,6 @@ export interface IZkSyncInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getVerifierParams",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isApprovedBySecurityCouncil",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -780,15 +703,7 @@ export interface IZkSyncInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "proposeShadowUpgrade",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "proposeTransparentUpgrade",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "proveBlocks",
+    functionFragment: "proveBatches",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -808,23 +723,11 @@ export interface IZkSyncInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "revertBlocks",
+    functionFragment: "revertBatches",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "securityCouncilUpgradeApprove",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setAllowList",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setL2BootloaderBytecodeHash",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setL2DefaultAccountBytecodeHash",
+    functionFragment: "setPendingAdmin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -844,41 +747,29 @@ export interface IZkSyncInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "setVerifier",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setVerifierParams",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "storedBlockHash",
+    functionFragment: "storedBatchHash",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "unfreezeDiamond",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "upgradeProposalHash",
-    data: BytesLike
-  ): Result;
 }
 
 export namespace BlockCommitEvent {
   export type InputTuple = [
-    blockNumber: BigNumberish,
-    blockHash: BytesLike,
+    batchNumber: BigNumberish,
+    batchHash: BytesLike,
     commitment: BytesLike
   ];
   export type OutputTuple = [
-    blockNumber: bigint,
-    blockHash: string,
+    batchNumber: bigint,
+    batchHash: string,
     commitment: string
   ];
   export interface OutputObject {
-    blockNumber: bigint;
-    blockHash: string;
+    batchNumber: bigint;
+    batchHash: string;
     commitment: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -889,18 +780,18 @@ export namespace BlockCommitEvent {
 
 export namespace BlockExecutionEvent {
   export type InputTuple = [
-    blockNumber: BigNumberish,
-    blockHash: BytesLike,
+    batchNumber: BigNumberish,
+    batchHash: BytesLike,
     commitment: BytesLike
   ];
   export type OutputTuple = [
-    blockNumber: bigint,
-    blockHash: string,
+    batchNumber: bigint,
+    batchHash: string,
     commitment: string
   ];
   export interface OutputObject {
-    blockNumber: bigint;
-    blockHash: string;
+    batchNumber: bigint;
+    batchHash: string;
     commitment: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -911,19 +802,19 @@ export namespace BlockExecutionEvent {
 
 export namespace BlocksRevertEvent {
   export type InputTuple = [
-    totalBlocksCommitted: BigNumberish,
-    totalBlocksVerified: BigNumberish,
-    totalBlocksExecuted: BigNumberish
+    totalBatchesCommitted: BigNumberish,
+    totalBatchesVerified: BigNumberish,
+    totalBatchesExecuted: BigNumberish
   ];
   export type OutputTuple = [
-    totalBlocksCommitted: bigint,
-    totalBlocksVerified: bigint,
-    totalBlocksExecuted: bigint
+    totalBatchesCommitted: bigint,
+    totalBatchesVerified: bigint,
+    totalBatchesExecuted: bigint
   ];
   export interface OutputObject {
-    totalBlocksCommitted: bigint;
-    totalBlocksVerified: bigint;
-    totalBlocksExecuted: bigint;
+    totalBatchesCommitted: bigint;
+    totalBatchesVerified: bigint;
+    totalBatchesExecuted: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -933,29 +824,16 @@ export namespace BlocksRevertEvent {
 
 export namespace BlocksVerificationEvent {
   export type InputTuple = [
-    previousLastVerifiedBlock: BigNumberish,
-    currentLastVerifiedBlock: BigNumberish
+    previousLastVerifiedBatch: BigNumberish,
+    currentLastVerifiedBatch: BigNumberish
   ];
   export type OutputTuple = [
-    previousLastVerifiedBlock: bigint,
-    currentLastVerifiedBlock: bigint
+    previousLastVerifiedBatch: bigint,
+    currentLastVerifiedBatch: bigint
   ];
   export interface OutputObject {
-    previousLastVerifiedBlock: bigint;
-    currentLastVerifiedBlock: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace CancelUpgradeProposalEvent {
-  export type InputTuple = [proposalId: BigNumberish, proposalHash: BytesLike];
-  export type OutputTuple = [proposalId: bigint, proposalHash: string];
-  export interface OutputObject {
-    proposalId: bigint;
-    proposalHash: string;
+    previousLastVerifiedBatch: bigint;
+    currentLastVerifiedBatch: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -977,20 +855,10 @@ export namespace EthWithdrawalFinalizedEvent {
 }
 
 export namespace ExecuteUpgradeEvent {
-  export type InputTuple = [
-    proposalId: BigNumberish,
-    proposalHash: BytesLike,
-    proposalSalt: BytesLike
-  ];
-  export type OutputTuple = [
-    proposalId: bigint,
-    proposalHash: string,
-    proposalSalt: string
-  ];
+  export type InputTuple = [diamondCut: Diamond.DiamondCutDataStruct];
+  export type OutputTuple = [diamondCut: Diamond.DiamondCutDataStructOutput];
   export interface OutputObject {
-    proposalId: bigint;
-    proposalHash: string;
-    proposalSalt: string;
+    diamondCut: Diamond.DiamondCutDataStructOutput;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -1020,15 +888,12 @@ export namespace IsPorterAvailableStatusUpdateEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace NewAllowListEvent {
-  export type InputTuple = [
-    oldAllowList: AddressLike,
-    newAllowList: AddressLike
-  ];
-  export type OutputTuple = [oldAllowList: string, newAllowList: string];
+export namespace NewAdminEvent {
+  export type InputTuple = [oldAdmin: AddressLike, newAdmin: AddressLike];
+  export type OutputTuple = [oldAdmin: string, newAdmin: string];
   export interface OutputObject {
-    oldAllowList: string;
-    newAllowList: string;
+    oldAdmin: string;
+    newAdmin: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -1049,37 +914,15 @@ export namespace NewGovernorEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace NewL2BootloaderBytecodeHashEvent {
+export namespace NewPendingAdminEvent {
   export type InputTuple = [
-    previousBytecodeHash: BytesLike,
-    newBytecodeHash: BytesLike
+    oldPendingAdmin: AddressLike,
+    newPendingAdmin: AddressLike
   ];
-  export type OutputTuple = [
-    previousBytecodeHash: string,
-    newBytecodeHash: string
-  ];
+  export type OutputTuple = [oldPendingAdmin: string, newPendingAdmin: string];
   export interface OutputObject {
-    previousBytecodeHash: string;
-    newBytecodeHash: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace NewL2DefaultAccountBytecodeHashEvent {
-  export type InputTuple = [
-    previousBytecodeHash: BytesLike,
-    newBytecodeHash: BytesLike
-  ];
-  export type OutputTuple = [
-    previousBytecodeHash: string,
-    newBytecodeHash: string
-  ];
-  export interface OutputObject {
-    previousBytecodeHash: string;
-    newBytecodeHash: string;
+    oldPendingAdmin: string;
+    newPendingAdmin: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -1153,86 +996,6 @@ export namespace NewPriorityTxMaxGasLimitEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace NewVerifierEvent {
-  export type InputTuple = [oldVerifier: AddressLike, newVerifier: AddressLike];
-  export type OutputTuple = [oldVerifier: string, newVerifier: string];
-  export interface OutputObject {
-    oldVerifier: string;
-    newVerifier: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace NewVerifierParamsEvent {
-  export type InputTuple = [
-    oldVerifierParams: VerifierParamsStruct,
-    newVerifierParams: VerifierParamsStruct
-  ];
-  export type OutputTuple = [
-    oldVerifierParams: VerifierParamsStructOutput,
-    newVerifierParams: VerifierParamsStructOutput
-  ];
-  export interface OutputObject {
-    oldVerifierParams: VerifierParamsStructOutput;
-    newVerifierParams: VerifierParamsStructOutput;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace ProposeShadowUpgradeEvent {
-  export type InputTuple = [proposalId: BigNumberish, proposalHash: BytesLike];
-  export type OutputTuple = [proposalId: bigint, proposalHash: string];
-  export interface OutputObject {
-    proposalId: bigint;
-    proposalHash: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace ProposeTransparentUpgradeEvent {
-  export type InputTuple = [
-    diamondCut: Diamond.DiamondCutDataStruct,
-    proposalId: BigNumberish,
-    proposalSalt: BytesLike
-  ];
-  export type OutputTuple = [
-    diamondCut: Diamond.DiamondCutDataStructOutput,
-    proposalId: bigint,
-    proposalSalt: string
-  ];
-  export interface OutputObject {
-    diamondCut: Diamond.DiamondCutDataStructOutput;
-    proposalId: bigint;
-    proposalSalt: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace SecurityCouncilUpgradeApproveEvent {
-  export type InputTuple = [proposalId: BigNumberish, proposalHash: BytesLike];
-  export type OutputTuple = [proposalId: bigint, proposalHash: string];
-  export interface OutputObject {
-    proposalId: bigint;
-    proposalHash: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
 export namespace UnfreezeEvent {
   export type InputTuple = [];
   export type OutputTuple = [];
@@ -1299,31 +1062,27 @@ export interface IZkSync extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  acceptAdmin: TypedContractMethod<[], [void], "nonpayable">;
+
   acceptGovernor: TypedContractMethod<[], [void], "nonpayable">;
 
-  cancelUpgradeProposal: TypedContractMethod<
-    [_proposedUpgradeHash: BytesLike],
-    [void],
-    "nonpayable"
-  >;
-
-  commitBlocks: TypedContractMethod<
+  commitBatches: TypedContractMethod<
     [
-      _lastCommittedBlockData: IExecutor.StoredBlockInfoStruct,
-      _newBlocksData: IExecutor.CommitBlockInfoStruct[]
+      _lastCommittedBatchData: IExecutor.StoredBatchInfoStruct,
+      _newBatchesData: IExecutor.CommitBatchInfoStruct[]
     ],
     [void],
     "nonpayable"
   >;
 
-  executeBlocks: TypedContractMethod<
-    [_blocksData: IExecutor.StoredBlockInfoStruct[]],
+  executeBatches: TypedContractMethod<
+    [_batchesData: IExecutor.StoredBatchInfoStruct[]],
     [void],
     "nonpayable"
   >;
 
   executeUpgrade: TypedContractMethod<
-    [_diamondCut: Diamond.DiamondCutDataStruct, _proposalSalt: BytesLike],
+    [_diamondCut: Diamond.DiamondCutDataStruct],
     [void],
     "nonpayable"
   >;
@@ -1342,9 +1101,9 @@ export interface IZkSync extends BaseContract {
 
   finalizeEthWithdrawal: TypedContractMethod<
     [
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[]
     ],
@@ -1356,8 +1115,6 @@ export interface IZkSync extends BaseContract {
 
   getAllowList: TypedContractMethod<[], [string], "view">;
 
-  getCurrentProposalId: TypedContractMethod<[], [bigint], "view">;
-
   getFirstUnprocessedPriorityTx: TypedContractMethod<[], [bigint], "view">;
 
   getGovernor: TypedContractMethod<[], [string], "view">;
@@ -1366,27 +1123,31 @@ export interface IZkSync extends BaseContract {
 
   getL2DefaultAccountBytecodeHash: TypedContractMethod<[], [string], "view">;
 
+  getL2SystemContractsUpgradeBatchNumber: TypedContractMethod<
+    [],
+    [bigint],
+    "view"
+  >;
+
+  getL2SystemContractsUpgradeTxHash: TypedContractMethod<[], [string], "view">;
+
+  getName: TypedContractMethod<[], [string], "view">;
+
   getPendingGovernor: TypedContractMethod<[], [string], "view">;
 
   getPriorityQueueSize: TypedContractMethod<[], [bigint], "view">;
 
   getPriorityTxMaxGasLimit: TypedContractMethod<[], [bigint], "view">;
 
-  getProposedUpgradeHash: TypedContractMethod<[], [string], "view">;
+  getProtocolVersion: TypedContractMethod<[], [bigint], "view">;
 
-  getProposedUpgradeTimestamp: TypedContractMethod<[], [bigint], "view">;
+  getTotalBatchesCommitted: TypedContractMethod<[], [bigint], "view">;
 
-  getSecurityCouncil: TypedContractMethod<[], [string], "view">;
+  getTotalBatchesExecuted: TypedContractMethod<[], [bigint], "view">;
 
-  getTotalBlocksCommitted: TypedContractMethod<[], [bigint], "view">;
-
-  getTotalBlocksExecuted: TypedContractMethod<[], [bigint], "view">;
-
-  getTotalBlocksVerified: TypedContractMethod<[], [bigint], "view">;
+  getTotalBatchesVerified: TypedContractMethod<[], [bigint], "view">;
 
   getTotalPriorityTxs: TypedContractMethod<[], [bigint], "view">;
-
-  getUpgradeProposalState: TypedContractMethod<[], [bigint], "view">;
 
   getVerifier: TypedContractMethod<[], [string], "view">;
 
@@ -1396,12 +1157,10 @@ export interface IZkSync extends BaseContract {
     "view"
   >;
 
-  isApprovedBySecurityCouncil: TypedContractMethod<[], [boolean], "view">;
-
   isDiamondStorageFrozen: TypedContractMethod<[], [boolean], "view">;
 
   isEthWithdrawalFinalized: TypedContractMethod<
-    [_l2BlockNumber: BigNumberish, _l2MessageIndex: BigNumberish],
+    [_l2BatchNumber: BigNumberish, _l2MessageIndex: BigNumberish],
     [boolean],
     "view"
   >;
@@ -1421,7 +1180,7 @@ export interface IZkSync extends BaseContract {
   isValidator: TypedContractMethod<[_address: AddressLike], [boolean], "view">;
 
   l2LogsRootHash: TypedContractMethod<
-    [_blockNumber: BigNumberish],
+    [_batchNumber: BigNumberish],
     [string],
     "view"
   >;
@@ -1442,22 +1201,10 @@ export interface IZkSync extends BaseContract {
     "view"
   >;
 
-  proposeShadowUpgrade: TypedContractMethod<
-    [_proposalHash: BytesLike, _proposalId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  proposeTransparentUpgrade: TypedContractMethod<
-    [_diamondCut: Diamond.DiamondCutDataStruct, _proposalId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  proveBlocks: TypedContractMethod<
+  proveBatches: TypedContractMethod<
     [
-      _prevBlock: IExecutor.StoredBlockInfoStruct,
-      _committedBlocks: IExecutor.StoredBlockInfoStruct[],
+      _prevBatch: IExecutor.StoredBatchInfoStruct,
+      _committedBatches: IExecutor.StoredBatchInfoStruct[],
       _proof: IExecutor.ProofInputStruct
     ],
     [void],
@@ -1467,9 +1214,9 @@ export interface IZkSync extends BaseContract {
   proveL1ToL2TransactionStatus: TypedContractMethod<
     [
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       _status: BigNumberish
     ],
@@ -1479,7 +1226,7 @@ export interface IZkSync extends BaseContract {
 
   proveL2LogInclusion: TypedContractMethod<
     [
-      _blockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _index: BigNumberish,
       _log: L2LogStruct,
       _proof: BytesLike[]
@@ -1490,7 +1237,7 @@ export interface IZkSync extends BaseContract {
 
   proveL2MessageInclusion: TypedContractMethod<
     [
-      _blockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _index: BigNumberish,
       _message: L2MessageStruct,
       _proof: BytesLike[]
@@ -1513,32 +1260,14 @@ export interface IZkSync extends BaseContract {
     "payable"
   >;
 
-  revertBlocks: TypedContractMethod<
-    [_newLastBlock: BigNumberish],
+  revertBatches: TypedContractMethod<
+    [_newLastBatch: BigNumberish],
     [void],
     "nonpayable"
   >;
 
-  securityCouncilUpgradeApprove: TypedContractMethod<
-    [_upgradeProposalHash: BytesLike],
-    [void],
-    "nonpayable"
-  >;
-
-  setAllowList: TypedContractMethod<
-    [_newAllowList: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  setL2BootloaderBytecodeHash: TypedContractMethod<
-    [_l2BootloaderBytecodeHash: BytesLike],
-    [void],
-    "nonpayable"
-  >;
-
-  setL2DefaultAccountBytecodeHash: TypedContractMethod<
-    [_l2DefaultAccountBytecodeHash: BytesLike],
+  setPendingAdmin: TypedContractMethod<
+    [_newPendingAdmin: AddressLike],
     [void],
     "nonpayable"
   >;
@@ -1567,71 +1296,45 @@ export interface IZkSync extends BaseContract {
     "nonpayable"
   >;
 
-  setVerifier: TypedContractMethod<
-    [_newVerifier: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  setVerifierParams: TypedContractMethod<
-    [_newVerifierParams: VerifierParamsStruct],
-    [void],
-    "nonpayable"
-  >;
-
-  storedBlockHash: TypedContractMethod<
-    [_blockNumber: BigNumberish],
+  storedBatchHash: TypedContractMethod<
+    [_batchNumber: BigNumberish],
     [string],
     "view"
   >;
 
   unfreezeDiamond: TypedContractMethod<[], [void], "nonpayable">;
 
-  upgradeProposalHash: TypedContractMethod<
-    [
-      _diamondCut: Diamond.DiamondCutDataStruct,
-      _proposalId: BigNumberish,
-      _salt: BytesLike
-    ],
-    [string],
-    "view"
-  >;
-
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
   getFunction(
+    nameOrSignature: "acceptAdmin"
+  ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "acceptGovernor"
   ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "cancelUpgradeProposal"
-  ): TypedContractMethod<
-    [_proposedUpgradeHash: BytesLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "commitBlocks"
+    nameOrSignature: "commitBatches"
   ): TypedContractMethod<
     [
-      _lastCommittedBlockData: IExecutor.StoredBlockInfoStruct,
-      _newBlocksData: IExecutor.CommitBlockInfoStruct[]
+      _lastCommittedBatchData: IExecutor.StoredBatchInfoStruct,
+      _newBatchesData: IExecutor.CommitBatchInfoStruct[]
     ],
     [void],
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "executeBlocks"
+    nameOrSignature: "executeBatches"
   ): TypedContractMethod<
-    [_blocksData: IExecutor.StoredBlockInfoStruct[]],
+    [_batchesData: IExecutor.StoredBatchInfoStruct[]],
     [void],
     "nonpayable"
   >;
   getFunction(
     nameOrSignature: "executeUpgrade"
   ): TypedContractMethod<
-    [_diamondCut: Diamond.DiamondCutDataStruct, _proposalSalt: BytesLike],
+    [_diamondCut: Diamond.DiamondCutDataStruct],
     [void],
     "nonpayable"
   >;
@@ -1651,9 +1354,9 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "finalizeEthWithdrawal"
   ): TypedContractMethod<
     [
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _message: BytesLike,
       _merkleProof: BytesLike[]
     ],
@@ -1667,9 +1370,6 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "getAllowList"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
-    nameOrSignature: "getCurrentProposalId"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
     nameOrSignature: "getFirstUnprocessedPriorityTx"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
@@ -1682,6 +1382,15 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "getL2DefaultAccountBytecodeHash"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "getL2SystemContractsUpgradeBatchNumber"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getL2SystemContractsUpgradeTxHash"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "getName"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
     nameOrSignature: "getPendingGovernor"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
@@ -1691,28 +1400,19 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "getPriorityTxMaxGasLimit"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "getProposedUpgradeHash"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getProposedUpgradeTimestamp"
+    nameOrSignature: "getProtocolVersion"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "getSecurityCouncil"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "getTotalBlocksCommitted"
+    nameOrSignature: "getTotalBatchesCommitted"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "getTotalBlocksExecuted"
+    nameOrSignature: "getTotalBatchesExecuted"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
-    nameOrSignature: "getTotalBlocksVerified"
+    nameOrSignature: "getTotalBatchesVerified"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "getTotalPriorityTxs"
-  ): TypedContractMethod<[], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "getUpgradeProposalState"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "getVerifier"
@@ -1721,15 +1421,12 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "getVerifierParams"
   ): TypedContractMethod<[], [VerifierParamsStructOutput], "view">;
   getFunction(
-    nameOrSignature: "isApprovedBySecurityCouncil"
-  ): TypedContractMethod<[], [boolean], "view">;
-  getFunction(
     nameOrSignature: "isDiamondStorageFrozen"
   ): TypedContractMethod<[], [boolean], "view">;
   getFunction(
     nameOrSignature: "isEthWithdrawalFinalized"
   ): TypedContractMethod<
-    [_l2BlockNumber: BigNumberish, _l2MessageIndex: BigNumberish],
+    [_l2BatchNumber: BigNumberish, _l2MessageIndex: BigNumberish],
     [boolean],
     "view"
   >;
@@ -1744,7 +1441,7 @@ export interface IZkSync extends BaseContract {
   ): TypedContractMethod<[_address: AddressLike], [boolean], "view">;
   getFunction(
     nameOrSignature: "l2LogsRootHash"
-  ): TypedContractMethod<[_blockNumber: BigNumberish], [string], "view">;
+  ): TypedContractMethod<[_batchNumber: BigNumberish], [string], "view">;
   getFunction(
     nameOrSignature: "l2TransactionBaseCost"
   ): TypedContractMethod<
@@ -1760,25 +1457,11 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "priorityQueueFrontOperation"
   ): TypedContractMethod<[], [PriorityOperationStructOutput], "view">;
   getFunction(
-    nameOrSignature: "proposeShadowUpgrade"
-  ): TypedContractMethod<
-    [_proposalHash: BytesLike, _proposalId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "proposeTransparentUpgrade"
-  ): TypedContractMethod<
-    [_diamondCut: Diamond.DiamondCutDataStruct, _proposalId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "proveBlocks"
+    nameOrSignature: "proveBatches"
   ): TypedContractMethod<
     [
-      _prevBlock: IExecutor.StoredBlockInfoStruct,
-      _committedBlocks: IExecutor.StoredBlockInfoStruct[],
+      _prevBatch: IExecutor.StoredBatchInfoStruct,
+      _committedBatches: IExecutor.StoredBatchInfoStruct[],
       _proof: IExecutor.ProofInputStruct
     ],
     [void],
@@ -1789,9 +1472,9 @@ export interface IZkSync extends BaseContract {
   ): TypedContractMethod<
     [
       _l2TxHash: BytesLike,
-      _l2BlockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _l2MessageIndex: BigNumberish,
-      _l2TxNumberInBlock: BigNumberish,
+      _l2TxNumberInBatch: BigNumberish,
       _merkleProof: BytesLike[],
       _status: BigNumberish
     ],
@@ -1802,7 +1485,7 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "proveL2LogInclusion"
   ): TypedContractMethod<
     [
-      _blockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _index: BigNumberish,
       _log: L2LogStruct,
       _proof: BytesLike[]
@@ -1814,7 +1497,7 @@ export interface IZkSync extends BaseContract {
     nameOrSignature: "proveL2MessageInclusion"
   ): TypedContractMethod<
     [
-      _blockNumber: BigNumberish,
+      _l2BatchNumber: BigNumberish,
       _index: BigNumberish,
       _message: L2MessageStruct,
       _proof: BytesLike[]
@@ -1838,32 +1521,11 @@ export interface IZkSync extends BaseContract {
     "payable"
   >;
   getFunction(
-    nameOrSignature: "revertBlocks"
-  ): TypedContractMethod<[_newLastBlock: BigNumberish], [void], "nonpayable">;
+    nameOrSignature: "revertBatches"
+  ): TypedContractMethod<[_newLastBatch: BigNumberish], [void], "nonpayable">;
   getFunction(
-    nameOrSignature: "securityCouncilUpgradeApprove"
-  ): TypedContractMethod<
-    [_upgradeProposalHash: BytesLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setAllowList"
-  ): TypedContractMethod<[_newAllowList: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setL2BootloaderBytecodeHash"
-  ): TypedContractMethod<
-    [_l2BootloaderBytecodeHash: BytesLike],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "setL2DefaultAccountBytecodeHash"
-  ): TypedContractMethod<
-    [_l2DefaultAccountBytecodeHash: BytesLike],
-    [void],
-    "nonpayable"
-  >;
+    nameOrSignature: "setPendingAdmin"
+  ): TypedContractMethod<[_newPendingAdmin: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "setPendingGovernor"
   ): TypedContractMethod<
@@ -1889,32 +1551,11 @@ export interface IZkSync extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "setVerifier"
-  ): TypedContractMethod<[_newVerifier: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "setVerifierParams"
-  ): TypedContractMethod<
-    [_newVerifierParams: VerifierParamsStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
-    nameOrSignature: "storedBlockHash"
-  ): TypedContractMethod<[_blockNumber: BigNumberish], [string], "view">;
+    nameOrSignature: "storedBatchHash"
+  ): TypedContractMethod<[_batchNumber: BigNumberish], [string], "view">;
   getFunction(
     nameOrSignature: "unfreezeDiamond"
   ): TypedContractMethod<[], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "upgradeProposalHash"
-  ): TypedContractMethod<
-    [
-      _diamondCut: Diamond.DiamondCutDataStruct,
-      _proposalId: BigNumberish,
-      _salt: BytesLike
-    ],
-    [string],
-    "view"
-  >;
 
   getEvent(
     key: "BlockCommit"
@@ -1945,13 +1586,6 @@ export interface IZkSync extends BaseContract {
     BlocksVerificationEvent.OutputObject
   >;
   getEvent(
-    key: "CancelUpgradeProposal"
-  ): TypedContractEvent<
-    CancelUpgradeProposalEvent.InputTuple,
-    CancelUpgradeProposalEvent.OutputTuple,
-    CancelUpgradeProposalEvent.OutputObject
-  >;
-  getEvent(
     key: "EthWithdrawalFinalized"
   ): TypedContractEvent<
     EthWithdrawalFinalizedEvent.InputTuple,
@@ -1980,11 +1614,11 @@ export interface IZkSync extends BaseContract {
     IsPorterAvailableStatusUpdateEvent.OutputObject
   >;
   getEvent(
-    key: "NewAllowList"
+    key: "NewAdmin"
   ): TypedContractEvent<
-    NewAllowListEvent.InputTuple,
-    NewAllowListEvent.OutputTuple,
-    NewAllowListEvent.OutputObject
+    NewAdminEvent.InputTuple,
+    NewAdminEvent.OutputTuple,
+    NewAdminEvent.OutputObject
   >;
   getEvent(
     key: "NewGovernor"
@@ -1994,18 +1628,11 @@ export interface IZkSync extends BaseContract {
     NewGovernorEvent.OutputObject
   >;
   getEvent(
-    key: "NewL2BootloaderBytecodeHash"
+    key: "NewPendingAdmin"
   ): TypedContractEvent<
-    NewL2BootloaderBytecodeHashEvent.InputTuple,
-    NewL2BootloaderBytecodeHashEvent.OutputTuple,
-    NewL2BootloaderBytecodeHashEvent.OutputObject
-  >;
-  getEvent(
-    key: "NewL2DefaultAccountBytecodeHash"
-  ): TypedContractEvent<
-    NewL2DefaultAccountBytecodeHashEvent.InputTuple,
-    NewL2DefaultAccountBytecodeHashEvent.OutputTuple,
-    NewL2DefaultAccountBytecodeHashEvent.OutputObject
+    NewPendingAdminEvent.InputTuple,
+    NewPendingAdminEvent.OutputTuple,
+    NewPendingAdminEvent.OutputObject
   >;
   getEvent(
     key: "NewPendingGovernor"
@@ -2027,41 +1654,6 @@ export interface IZkSync extends BaseContract {
     NewPriorityTxMaxGasLimitEvent.InputTuple,
     NewPriorityTxMaxGasLimitEvent.OutputTuple,
     NewPriorityTxMaxGasLimitEvent.OutputObject
-  >;
-  getEvent(
-    key: "NewVerifier"
-  ): TypedContractEvent<
-    NewVerifierEvent.InputTuple,
-    NewVerifierEvent.OutputTuple,
-    NewVerifierEvent.OutputObject
-  >;
-  getEvent(
-    key: "NewVerifierParams"
-  ): TypedContractEvent<
-    NewVerifierParamsEvent.InputTuple,
-    NewVerifierParamsEvent.OutputTuple,
-    NewVerifierParamsEvent.OutputObject
-  >;
-  getEvent(
-    key: "ProposeShadowUpgrade"
-  ): TypedContractEvent<
-    ProposeShadowUpgradeEvent.InputTuple,
-    ProposeShadowUpgradeEvent.OutputTuple,
-    ProposeShadowUpgradeEvent.OutputObject
-  >;
-  getEvent(
-    key: "ProposeTransparentUpgrade"
-  ): TypedContractEvent<
-    ProposeTransparentUpgradeEvent.InputTuple,
-    ProposeTransparentUpgradeEvent.OutputTuple,
-    ProposeTransparentUpgradeEvent.OutputObject
-  >;
-  getEvent(
-    key: "SecurityCouncilUpgradeApprove"
-  ): TypedContractEvent<
-    SecurityCouncilUpgradeApproveEvent.InputTuple,
-    SecurityCouncilUpgradeApproveEvent.OutputTuple,
-    SecurityCouncilUpgradeApproveEvent.OutputObject
   >;
   getEvent(
     key: "Unfreeze"
@@ -2123,17 +1715,6 @@ export interface IZkSync extends BaseContract {
       BlocksVerificationEvent.OutputObject
     >;
 
-    "CancelUpgradeProposal(uint256,bytes32)": TypedContractEvent<
-      CancelUpgradeProposalEvent.InputTuple,
-      CancelUpgradeProposalEvent.OutputTuple,
-      CancelUpgradeProposalEvent.OutputObject
-    >;
-    CancelUpgradeProposal: TypedContractEvent<
-      CancelUpgradeProposalEvent.InputTuple,
-      CancelUpgradeProposalEvent.OutputTuple,
-      CancelUpgradeProposalEvent.OutputObject
-    >;
-
     "EthWithdrawalFinalized(address,uint256)": TypedContractEvent<
       EthWithdrawalFinalizedEvent.InputTuple,
       EthWithdrawalFinalizedEvent.OutputTuple,
@@ -2145,7 +1726,7 @@ export interface IZkSync extends BaseContract {
       EthWithdrawalFinalizedEvent.OutputObject
     >;
 
-    "ExecuteUpgrade(uint256,bytes32,bytes32)": TypedContractEvent<
+    "ExecuteUpgrade(tuple)": TypedContractEvent<
       ExecuteUpgradeEvent.InputTuple,
       ExecuteUpgradeEvent.OutputTuple,
       ExecuteUpgradeEvent.OutputObject
@@ -2178,15 +1759,15 @@ export interface IZkSync extends BaseContract {
       IsPorterAvailableStatusUpdateEvent.OutputObject
     >;
 
-    "NewAllowList(address,address)": TypedContractEvent<
-      NewAllowListEvent.InputTuple,
-      NewAllowListEvent.OutputTuple,
-      NewAllowListEvent.OutputObject
+    "NewAdmin(address,address)": TypedContractEvent<
+      NewAdminEvent.InputTuple,
+      NewAdminEvent.OutputTuple,
+      NewAdminEvent.OutputObject
     >;
-    NewAllowList: TypedContractEvent<
-      NewAllowListEvent.InputTuple,
-      NewAllowListEvent.OutputTuple,
-      NewAllowListEvent.OutputObject
+    NewAdmin: TypedContractEvent<
+      NewAdminEvent.InputTuple,
+      NewAdminEvent.OutputTuple,
+      NewAdminEvent.OutputObject
     >;
 
     "NewGovernor(address,address)": TypedContractEvent<
@@ -2200,26 +1781,15 @@ export interface IZkSync extends BaseContract {
       NewGovernorEvent.OutputObject
     >;
 
-    "NewL2BootloaderBytecodeHash(bytes32,bytes32)": TypedContractEvent<
-      NewL2BootloaderBytecodeHashEvent.InputTuple,
-      NewL2BootloaderBytecodeHashEvent.OutputTuple,
-      NewL2BootloaderBytecodeHashEvent.OutputObject
+    "NewPendingAdmin(address,address)": TypedContractEvent<
+      NewPendingAdminEvent.InputTuple,
+      NewPendingAdminEvent.OutputTuple,
+      NewPendingAdminEvent.OutputObject
     >;
-    NewL2BootloaderBytecodeHash: TypedContractEvent<
-      NewL2BootloaderBytecodeHashEvent.InputTuple,
-      NewL2BootloaderBytecodeHashEvent.OutputTuple,
-      NewL2BootloaderBytecodeHashEvent.OutputObject
-    >;
-
-    "NewL2DefaultAccountBytecodeHash(bytes32,bytes32)": TypedContractEvent<
-      NewL2DefaultAccountBytecodeHashEvent.InputTuple,
-      NewL2DefaultAccountBytecodeHashEvent.OutputTuple,
-      NewL2DefaultAccountBytecodeHashEvent.OutputObject
-    >;
-    NewL2DefaultAccountBytecodeHash: TypedContractEvent<
-      NewL2DefaultAccountBytecodeHashEvent.InputTuple,
-      NewL2DefaultAccountBytecodeHashEvent.OutputTuple,
-      NewL2DefaultAccountBytecodeHashEvent.OutputObject
+    NewPendingAdmin: TypedContractEvent<
+      NewPendingAdminEvent.InputTuple,
+      NewPendingAdminEvent.OutputTuple,
+      NewPendingAdminEvent.OutputObject
     >;
 
     "NewPendingGovernor(address,address)": TypedContractEvent<
@@ -2253,61 +1823,6 @@ export interface IZkSync extends BaseContract {
       NewPriorityTxMaxGasLimitEvent.InputTuple,
       NewPriorityTxMaxGasLimitEvent.OutputTuple,
       NewPriorityTxMaxGasLimitEvent.OutputObject
-    >;
-
-    "NewVerifier(address,address)": TypedContractEvent<
-      NewVerifierEvent.InputTuple,
-      NewVerifierEvent.OutputTuple,
-      NewVerifierEvent.OutputObject
-    >;
-    NewVerifier: TypedContractEvent<
-      NewVerifierEvent.InputTuple,
-      NewVerifierEvent.OutputTuple,
-      NewVerifierEvent.OutputObject
-    >;
-
-    "NewVerifierParams(tuple,tuple)": TypedContractEvent<
-      NewVerifierParamsEvent.InputTuple,
-      NewVerifierParamsEvent.OutputTuple,
-      NewVerifierParamsEvent.OutputObject
-    >;
-    NewVerifierParams: TypedContractEvent<
-      NewVerifierParamsEvent.InputTuple,
-      NewVerifierParamsEvent.OutputTuple,
-      NewVerifierParamsEvent.OutputObject
-    >;
-
-    "ProposeShadowUpgrade(uint256,bytes32)": TypedContractEvent<
-      ProposeShadowUpgradeEvent.InputTuple,
-      ProposeShadowUpgradeEvent.OutputTuple,
-      ProposeShadowUpgradeEvent.OutputObject
-    >;
-    ProposeShadowUpgrade: TypedContractEvent<
-      ProposeShadowUpgradeEvent.InputTuple,
-      ProposeShadowUpgradeEvent.OutputTuple,
-      ProposeShadowUpgradeEvent.OutputObject
-    >;
-
-    "ProposeTransparentUpgrade(tuple,uint256,bytes32)": TypedContractEvent<
-      ProposeTransparentUpgradeEvent.InputTuple,
-      ProposeTransparentUpgradeEvent.OutputTuple,
-      ProposeTransparentUpgradeEvent.OutputObject
-    >;
-    ProposeTransparentUpgrade: TypedContractEvent<
-      ProposeTransparentUpgradeEvent.InputTuple,
-      ProposeTransparentUpgradeEvent.OutputTuple,
-      ProposeTransparentUpgradeEvent.OutputObject
-    >;
-
-    "SecurityCouncilUpgradeApprove(uint256,bytes32)": TypedContractEvent<
-      SecurityCouncilUpgradeApproveEvent.InputTuple,
-      SecurityCouncilUpgradeApproveEvent.OutputTuple,
-      SecurityCouncilUpgradeApproveEvent.OutputObject
-    >;
-    SecurityCouncilUpgradeApprove: TypedContractEvent<
-      SecurityCouncilUpgradeApproveEvent.InputTuple,
-      SecurityCouncilUpgradeApproveEvent.OutputTuple,
-      SecurityCouncilUpgradeApproveEvent.OutputObject
     >;
 
     "Unfreeze()": TypedContractEvent<

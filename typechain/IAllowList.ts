@@ -50,7 +50,10 @@ export interface IAllowListInterface extends Interface {
   ): FunctionFragment;
 
   getEvent(
-    nameOrSignatureOrTopic: "UpdateAccessMode" | "UpdateCallPermission"
+    nameOrSignatureOrTopic:
+      | "UpdateAccessMode"
+      | "UpdateCallPermission"
+      | "UpdateDepositLimit"
   ): EventFragment;
 
   encodeFunctionData(
@@ -165,6 +168,28 @@ export namespace UpdateCallPermissionEvent {
     target: string;
     functionSig: string;
     status: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace UpdateDepositLimitEvent {
+  export type InputTuple = [
+    l1Token: AddressLike,
+    depositLimitation: boolean,
+    depositCap: BigNumberish
+  ];
+  export type OutputTuple = [
+    l1Token: string,
+    depositLimitation: boolean,
+    depositCap: bigint
+  ];
+  export interface OutputObject {
+    l1Token: string;
+    depositLimitation: boolean;
+    depositCap: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -371,6 +396,13 @@ export interface IAllowList extends BaseContract {
     UpdateCallPermissionEvent.OutputTuple,
     UpdateCallPermissionEvent.OutputObject
   >;
+  getEvent(
+    key: "UpdateDepositLimit"
+  ): TypedContractEvent<
+    UpdateDepositLimitEvent.InputTuple,
+    UpdateDepositLimitEvent.OutputTuple,
+    UpdateDepositLimitEvent.OutputObject
+  >;
 
   filters: {
     "UpdateAccessMode(address,uint8,uint8)": TypedContractEvent<
@@ -393,6 +425,17 @@ export interface IAllowList extends BaseContract {
       UpdateCallPermissionEvent.InputTuple,
       UpdateCallPermissionEvent.OutputTuple,
       UpdateCallPermissionEvent.OutputObject
+    >;
+
+    "UpdateDepositLimit(address,bool,uint256)": TypedContractEvent<
+      UpdateDepositLimitEvent.InputTuple,
+      UpdateDepositLimitEvent.OutputTuple,
+      UpdateDepositLimitEvent.OutputObject
+    >;
+    UpdateDepositLimit: TypedContractEvent<
+      UpdateDepositLimitEvent.InputTuple,
+      UpdateDepositLimitEvent.OutputTuple,
+      UpdateDepositLimitEvent.OutputObject
     >;
   };
 }

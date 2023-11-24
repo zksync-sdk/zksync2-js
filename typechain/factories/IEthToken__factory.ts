@@ -76,6 +76,37 @@ const _abi = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "_l2Sender",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "_l1Receiver",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "bytes",
+        name: "_additionalData",
+        type: "bytes",
+      },
+    ],
+    name: "WithdrawalWithMessage",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -196,6 +227,24 @@ const _abi = [
       },
     ],
     name: "withdraw",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_l1Receiver",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "_additionalData",
+        type: "bytes",
+      },
+    ],
+    name: "withdrawWithMessage",
     outputs: [],
     stateMutability: "payable",
     type: "function",
