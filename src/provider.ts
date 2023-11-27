@@ -15,6 +15,7 @@ import {
     JsonRpcPayload,
     resolveProperties,
     FetchRequest,
+    AddressLike,
 } from "ethers";
 import { IERC20__factory, IEthToken__factory, IL2Bridge__factory } from "../typechain";
 import {
@@ -36,6 +37,7 @@ import {
     BatchDetails,
     Fee,
     Transaction,
+    RawBlockTransaction,
 } from "./types";
 import {
     isETH,
@@ -262,6 +264,14 @@ export function JsonRpcApiProvider<TBase extends Constructor<ethers.JsonRpcApiPr
 
         async getTransactionDetails(txHash: BytesLike): Promise<TransactionDetails> {
             return await this.send("zks_getTransactionDetails", [txHash]);
+        }
+
+        async getBytecodeByHash(bytecodeHash: BytesLike): Promise<Uint8Array> {
+            return await this.send("zks_getBytecodeByHash", [bytecodeHash]);
+        }
+
+        async getRawBlockTransactions(number: number): Promise<RawBlockTransaction[]> {
+            return await this.send("zks_getRawBlockTransactions", [number]);
         }
 
         async getWithdrawTx(transaction: {

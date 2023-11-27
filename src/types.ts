@@ -1,4 +1,5 @@
 import {
+    AddressLike,
     assertArgument,
     BigNumberish,
     BytesLike,
@@ -489,4 +490,37 @@ export interface FullDepositFee {
     baseCost: BigInt;
     l1GasLimit: BigInt;
     l2GasLimit: BigInt;
+}
+
+export interface RawBlockTransaction {
+    common_data: {
+        L2: {
+            nonce: number;
+            fee: {
+                gas_limit: BigInt;
+                max_fee_per_gas: BigInt;
+                max_priority_fee_per_gas: BigInt;
+                gas_per_pubdata_limit: BigInt;
+            },
+            initiatorAddress: Address;
+            signature: Uint8Array;
+            transactionType: string;
+            input: {
+                hash: string;
+                data: Uint8Array;
+            };
+            paymasterParams: {
+                paymaster: Address;
+                paymasterInput: Uint8Array;
+            };
+        }
+    };
+    execute: {
+        calldata: string;
+        contractAddress: Address;
+        factoryDeps: BytesLike[];
+        value: BigInt;
+    };
+    received_timestamp_ms: number;
+    raw_bytes: string;
 }
