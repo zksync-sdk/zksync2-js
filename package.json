@@ -1,6 +1,6 @@
 {
     "name": "zksync2-js",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "main": "build/src/index.js",
     "types": "build/src/index.d.ts",
     "description": "A Web3 library for interacting with the ZkSync Layer 2 scaling solution.",

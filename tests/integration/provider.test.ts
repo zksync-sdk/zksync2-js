@@ -105,6 +105,22 @@ describe("Provider", () => {
         });
     });
 
+    describe("#getBytecodeByHash(txHash)", () => {
+        it("should return bytecode of a contract", async () => {
+            const TESTNET_PAYMASTER = "0x0f9acdb01827403765458b4685de6d9007580d15";
+            const result = await provider.getBytecodeByHash(TESTNET_PAYMASTER);
+            expect(result).not.to.be.null;
+        });
+    });
+
+    describe("#getRawBlockTransactions(number)", () => {
+        it("should return bytecode of a contract", async () => {
+            const blockNumber = await provider.getBlockNumber();
+            const result = await provider.getRawBlockTransactions(blockNumber);
+            expect(result).not.to.be.null;
+        });
+    });
+
     describe("#getTransactionStatus(txHash)", () => {
         it("should return transaction status", async () => {
             const result = await provider.getTransactionStatus(tx.hash);
