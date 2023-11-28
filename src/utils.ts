@@ -121,7 +121,7 @@ export function create2Address(
     const inputHash = ethers.keccak256(input);
     const addressBytes = ethers
         .keccak256(
-            ethers.concat([prefix, ethers.zeroPadBytes(sender, 32), salt, bytecodeHash, inputHash]),
+            ethers.concat([prefix, ethers.zeroPadValue(sender, 32), salt, bytecodeHash, inputHash]),
         )
         .slice(26);
     return ethers.getAddress(addressBytes);
@@ -133,8 +133,8 @@ export function createAddress(sender: Address, senderNonce: BigNumberish) {
         .keccak256(
             ethers.concat([
                 prefix,
-                ethers.zeroPadBytes(sender, 32),
-                ethers.zeroPadBytes(ethers.toBeHex(senderNonce), 32),
+                ethers.zeroPadValue(sender, 32),
+                ethers.zeroPadValue(ethers.toBeHex(senderNonce), 32),
             ]),
         )
         .slice(26);
