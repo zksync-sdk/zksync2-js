@@ -21,7 +21,7 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface IL2BridgeInterface extends ethers.utils.Interface {
+interface Il2BridgeInterface extends ethers.utils.Interface {
   functions: {
     "finalizeDeposit(address,address,address,uint256,bytes)": FunctionFragment;
     "l1Bridge()": FunctionFragment;
@@ -83,7 +83,7 @@ export class IL2Bridge extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: IL2BridgeInterface;
+  interface: Il2BridgeInterface;
 
   functions: {
     finalizeDeposit(

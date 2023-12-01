@@ -21,7 +21,9 @@ import {
     TransactionRequest,
     TransactionResponse,
     TransactionStatus,
-    Fee
+    Fee,
+    Network as ZkSyncNetwork,
+    RawBlockTransaction
 } from "./types";
 import {
     CONTRACT_DEPLOYER,
@@ -617,6 +619,14 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         return await this.send("zks_getTransactionDetails", [txHash]);
     }
 
+    async getBytecodeByHash(bytecodeHash: BytesLike): Promise<Uint8Array> {
+        return await this.send("zks_getBytecodeByHash", [bytecodeHash]);
+    }
+
+    async getRawBlockTransactions(number: number): Promise<RawBlockTransaction[]> {
+        return await this.send("zks_getRawBlockTransactions", [number]);
+    }
+
     async getWithdrawTx(transaction: {
         token: Address;
         amount: BigNumberish;
@@ -715,9 +725,20 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         return await this.estimateGas(transferTx);
     }
 
-    static getDefaultProvider() {
-        // TODO (SMA-1606): Add different urls for different networks.
-        return new Provider(process.env.ZKSYNC_WEB3_API_URL || "http://localhost:3050");
+    static getDefaultProvider(zksyncNetwork: ZkSyncNetwork = ZkSyncNetwork.Localhost) {
+        if (process.env.ZKSYNC_WEB3_API_URL) {
+            return new Provider(process.env.ZKSYNC_WEB3_API_URL);
+        }
+        switch (zksyncNetwork) {
+            case ZkSyncNetwork.Localhost:
+                return new Provider("http://localhost:3050");
+            case ZkSyncNetwork.Goerli:
+                return new Provider("https://zksync2-testnet.zksync.dev");
+            case ZkSyncNetwork.Sepolia:
+                return new Provider("https://sepolia.era.zksync.dev");
+            case ZkSyncNetwork.Mainnet:
+                return new Provider("https://mainnet.era.zksync.io");
+        }
     }
 
     async newFilter(filter: EventFilter | Promise<EventFilter>): Promise<BigNumber> {

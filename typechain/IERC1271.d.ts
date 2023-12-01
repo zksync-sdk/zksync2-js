@@ -19,7 +19,7 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface IERC1271Interface extends ethers.utils.Interface {
+interface Ierc1271Interface extends ethers.utils.Interface {
   functions: {
     "isValidSignature(bytes32,bytes)": FunctionFragment;
   };
@@ -48,7 +48,7 @@ export class IERC1271 extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: IERC1271Interface;
+  interface: Ierc1271Interface;
 
   functions: {
     isValidSignature(
