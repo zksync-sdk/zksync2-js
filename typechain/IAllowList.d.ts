@@ -107,10 +107,12 @@ interface IAllowListInterface extends ethers.utils.Interface {
   events: {
     "UpdateAccessMode(address,uint8,uint8)": EventFragment;
     "UpdateCallPermission(address,address,bytes4,bool)": EventFragment;
+    "UpdateDepositLimit(address,bool,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "UpdateAccessMode"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "UpdateCallPermission"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "UpdateDepositLimit"): EventFragment;
 }
 
 export class IAllowList extends Contract {
@@ -536,6 +538,12 @@ export class IAllowList extends Contract {
       target: string | null,
       functionSig: BytesLike | null,
       status: null
+    ): EventFilter;
+
+    UpdateDepositLimit(
+      l1Token: string | null,
+      depositLimitation: null,
+      depositCap: null
     ): EventFilter;
   };
 

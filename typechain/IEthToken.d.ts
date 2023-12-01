@@ -31,6 +31,7 @@ interface IEthTokenInterface extends ethers.utils.Interface {
     "totalSupply()": FunctionFragment;
     "transferFromTo(address,address,uint256)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
+    "withdrawWithMessage(address,bytes)": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -53,6 +54,10 @@ interface IEthTokenInterface extends ethers.utils.Interface {
     values: [string, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "withdraw", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "withdrawWithMessage",
+    values: [string, BytesLike]
+  ): string;
 
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
@@ -68,16 +73,22 @@ interface IEthTokenInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawWithMessage",
+    data: BytesLike
+  ): Result;
 
   events: {
     "Mint(address,uint256)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
     "Withdrawal(address,address,uint256)": EventFragment;
+    "WithdrawalWithMessage(address,address,uint256,bytes)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Mint"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdrawal"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WithdrawalWithMessage"): EventFragment;
 }
 
 export class IEthToken extends Contract {
@@ -175,6 +186,18 @@ export class IEthToken extends Contract {
       _l1Receiver: string,
       overrides?: PayableOverrides
     ): Promise<ContractTransaction>;
+
+    withdrawWithMessage(
+      _l1Receiver: string,
+      _additionalData: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<ContractTransaction>;
+
+    "withdrawWithMessage(address,bytes)"(
+      _l1Receiver: string,
+      _additionalData: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<ContractTransaction>;
   };
 
   balanceOf(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
@@ -233,6 +256,18 @@ export class IEthToken extends Contract {
 
   "withdraw(address)"(
     _l1Receiver: string,
+    overrides?: PayableOverrides
+  ): Promise<ContractTransaction>;
+
+  withdrawWithMessage(
+    _l1Receiver: string,
+    _additionalData: BytesLike,
+    overrides?: PayableOverrides
+  ): Promise<ContractTransaction>;
+
+  "withdrawWithMessage(address,bytes)"(
+    _l1Receiver: string,
+    _additionalData: BytesLike,
     overrides?: PayableOverrides
   ): Promise<ContractTransaction>;
 
@@ -295,6 +330,18 @@ export class IEthToken extends Contract {
       _l1Receiver: string,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    withdrawWithMessage(
+      _l1Receiver: string,
+      _additionalData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "withdrawWithMessage(address,bytes)"(
+      _l1Receiver: string,
+      _additionalData: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
   filters: {
@@ -306,6 +353,13 @@ export class IEthToken extends Contract {
       _l2Sender: string | null,
       _l1Receiver: string | null,
       _amount: null
+    ): EventFilter;
+
+    WithdrawalWithMessage(
+      _l2Sender: string | null,
+      _l1Receiver: string | null,
+      _amount: null,
+      _additionalData: null
     ): EventFilter;
   };
 
@@ -371,6 +425,18 @@ export class IEthToken extends Contract {
       _l1Receiver: string,
       overrides?: PayableOverrides
     ): Promise<BigNumber>;
+
+    withdrawWithMessage(
+      _l1Receiver: string,
+      _additionalData: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<BigNumber>;
+
+    "withdrawWithMessage(address,bytes)"(
+      _l1Receiver: string,
+      _additionalData: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -433,6 +499,18 @@ export class IEthToken extends Contract {
 
     "withdraw(address)"(
       _l1Receiver: string,
+      overrides?: PayableOverrides
+    ): Promise<PopulatedTransaction>;
+
+    withdrawWithMessage(
+      _l1Receiver: string,
+      _additionalData: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "withdrawWithMessage(address,bytes)"(
+      _l1Receiver: string,
+      _additionalData: BytesLike,
       overrides?: PayableOverrides
     ): Promise<PopulatedTransaction>;
   };

@@ -20,7 +20,7 @@ import { BytesLike } from "@ethersproject/bytes";
 import { Listener, Provider } from "@ethersproject/providers";
 import { FunctionFragment, EventFragment, Result } from "@ethersproject/abi";
 
-interface IERC20Interface extends ethers.utils.Interface {
+interface Ierc20Interface extends ethers.utils.Interface {
   functions: {
     "allowance(address,address)": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
@@ -94,7 +94,7 @@ export class IERC20 extends Contract {
   removeAllListeners(eventName: EventFilter | string): this;
   removeListener(eventName: any, listener: Listener): this;
 
-  interface: IERC20Interface;
+  interface: Ierc20Interface;
 
   functions: {
     allowance(

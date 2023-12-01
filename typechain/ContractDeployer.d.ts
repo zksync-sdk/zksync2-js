@@ -28,6 +28,7 @@ interface ContractDeployerInterface extends ethers.utils.Interface {
     "create2Account(bytes32,bytes32,bytes,uint8)": FunctionFragment;
     "createAccount(bytes32,bytes32,bytes,uint8)": FunctionFragment;
     "extendedAccountVersion(address)": FunctionFragment;
+    "forceDeployKeccak256(bytes32)": FunctionFragment;
     "forceDeployOnAddress(tuple,address)": FunctionFragment;
     "forceDeployOnAddresses(tuple[])": FunctionFragment;
     "getAccountInfo(address)": FunctionFragment;
@@ -56,6 +57,10 @@ interface ContractDeployerInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "extendedAccountVersion",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "forceDeployKeccak256",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "forceDeployOnAddress",
@@ -115,6 +120,10 @@ interface ContractDeployerInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "extendedAccountVersion",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "forceDeployKeccak256",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -246,6 +255,16 @@ export class ContractDeployer extends Contract {
     ): Promise<{
       0: number;
     }>;
+
+    forceDeployKeccak256(
+      _keccak256BytecodeHash: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<ContractTransaction>;
+
+    "forceDeployKeccak256(bytes32)"(
+      _keccak256BytecodeHash: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<ContractTransaction>;
 
     forceDeployOnAddress(
       _deployment: {
@@ -460,6 +479,16 @@ export class ContractDeployer extends Contract {
     overrides?: CallOverrides
   ): Promise<number>;
 
+  forceDeployKeccak256(
+    _keccak256BytecodeHash: BytesLike,
+    overrides?: PayableOverrides
+  ): Promise<ContractTransaction>;
+
+  "forceDeployKeccak256(bytes32)"(
+    _keccak256BytecodeHash: BytesLike,
+    overrides?: PayableOverrides
+  ): Promise<ContractTransaction>;
+
   forceDeployOnAddress(
     _deployment: {
       bytecodeHash: BytesLike;
@@ -644,6 +673,16 @@ export class ContractDeployer extends Contract {
       _address: string,
       overrides?: CallOverrides
     ): Promise<number>;
+
+    forceDeployKeccak256(
+      _keccak256BytecodeHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    "forceDeployKeccak256(bytes32)"(
+      _keccak256BytecodeHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     forceDeployOnAddress(
       _deployment: {
@@ -849,6 +888,16 @@ export class ContractDeployer extends Contract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    forceDeployKeccak256(
+      _keccak256BytecodeHash: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<BigNumber>;
+
+    "forceDeployKeccak256(bytes32)"(
+      _keccak256BytecodeHash: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<BigNumber>;
+
     forceDeployOnAddress(
       _deployment: {
         bytecodeHash: BytesLike;
@@ -1023,6 +1072,16 @@ export class ContractDeployer extends Contract {
     "extendedAccountVersion(address)"(
       _address: string,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    forceDeployKeccak256(
+      _keccak256BytecodeHash: BytesLike,
+      overrides?: PayableOverrides
+    ): Promise<PopulatedTransaction>;
+
+    "forceDeployKeccak256(bytes32)"(
+      _keccak256BytecodeHash: BytesLike,
+      overrides?: PayableOverrides
     ): Promise<PopulatedTransaction>;
 
     forceDeployOnAddress(

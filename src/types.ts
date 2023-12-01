@@ -12,6 +12,7 @@ export enum Network {
     Ropsten = 3,
     Rinkeby = 4,
     Goerli = 5,
+    Sepolia = 6,
     Localhost = 9,
 }
 
@@ -242,4 +243,37 @@ export interface FullDepositFee {
     baseCost: BigNumber;
     l1GasLimit: BigNumber;
     l2GasLimit: BigNumber;
+}
+
+export interface RawBlockTransaction {
+    common_data: {
+        L2: {
+            nonce: number;
+            fee: {
+                gas_limit: BigInt;
+                max_fee_per_gas: BigInt;
+                max_priority_fee_per_gas: BigInt;
+                gas_per_pubdata_limit: BigInt;
+            },
+            initiatorAddress: Address;
+            signature: Uint8Array;
+            transactionType: string;
+            input: {
+                hash: string;
+                data: Uint8Array;
+            };
+            paymasterParams: {
+                paymaster: Address;
+                paymasterInput: Uint8Array;
+            };
+        }
+    };
+    execute: {
+        calldata: string;
+        contractAddress: Address;
+        factoryDeps: BytesLike[];
+        value: BigInt;
+    };
+    received_timestamp_ms: number;
+    raw_bytes: string;
 }
