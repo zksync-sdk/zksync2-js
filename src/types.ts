@@ -21,6 +21,7 @@ export enum Network {
     Ropsten = 3,
     Rinkeby = 4,
     Goerli = 5,
+    Sepolia = 6,
     Localhost = 9,
 }
 
@@ -99,7 +100,7 @@ export class TransactionResponse extends ethers.TransactionResponse {
     override async wait(confirmations?: number): Promise<TransactionReceipt> {
         while (true) {
             const receipt = (await super.wait(confirmations)) as TransactionReceipt;
-            if (receipt.blockNumber) {
+            if (receipt && receipt.blockNumber) {
                 return receipt;
             }
             await sleep(500);
