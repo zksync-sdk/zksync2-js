@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/zksync-sdk/zksync2-js/compare/v0.17.0...v0.17.1) (2023-12-06)
+
+### Bug Fixes
+
+*  return normalized bytecode in `normalizeBytecode` function ([e74798f](https://github.com/zksync-sdk/zksync2-js/commit/e74798fbb8a815df33888474d87ede82873b4dc7q))
+
+
 ## [0.17.0](https://github.com/zksync-sdk/zksync2-js/compare/v0.16.0...v0.17.0) (2023-12-06)
 
 ### Features
