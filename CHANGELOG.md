@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/zksync-sdk/zksync2-js/compare/v0.16.0...v0.17.0) (2023-12-06)
+
+### Features
+
+* add `Provider.getBytecodeByHash` and `Provider.getRawBlockTransactions` ([125a092](https://github.com/zksync-sdk/zksync2-js/commit/125a092983e1fda7f7aab5daef6a8fb0a76f2c38))
+
+
 ## [0.16.0](https://github.com/zksync-sdk/zksync2-js/compare/v0.15.5...v0.16.0) (2023-11-01)
 
 ### Features
@@ -14,16 +21,20 @@
 
 * resolved wrong types in `types.Fee` ([8f1bf71](https://github.com/zksync-sdk/zksync2-js/commit/8f1bf71910f082f06623ac31d13c4eef1d1770a1))
 
-## 0.15.4 (2023-07-25)
-
 
 ## [0.15.5](https://github.com/zksync-sdk/zksync2-js/compare/v0.15.4...v0.15.5) (2023-10-02)
 
 
+
 ### Bug Fixes
 
-* make input optional in `create2Address` ([8745cfd](https://github.com/zksync-sdk/zksync2-js/commit/8745cfd97cb17e5d590afbd4f4551b4335006765))
 * handle errors from `wETHL1` and `wETHL2` bridges ([a3cb054]((https://github.com/zksync-sdk/zksync2-js/commit/a3cb0549c2ff9712da53c0188d1251a2e109cc11)))
+
+
+### Features
+
+* make input optional in `create2Address` ([8745cfd](https://github.com/zksync-sdk/zksync2-js/commit/8745cfd97cb17e5d590afbd4f4551b4335006765))
+
 
 ## 0.15.4 (2023-07-25)
 
