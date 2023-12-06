@@ -199,4 +199,5 @@ function normalizeBytecode(bytecode: BytesLike | { object: string }) {
     if (!isHexString(bytecodeHex) || bytecodeHex.length % 2) {
         throw new Error("invalid bytecode");
     }
+    return bytecodeHex;
 }
