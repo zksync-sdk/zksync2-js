@@ -1,5 +1,7 @@
 # 🚀 zksync-web3 JavaScript SDK 🚀
 
+> This repository has been deprecated in favor of [zksync-ethers@^5.0.0](https://github.com/zksync-sdk/zksync-ethers)!!!
+
 In order to provide easy access to all the features of zkSync Era, the `zksync-web3` JavaScript SDK was created,
 which is made in a way that has an interface very similar to those of [ethers](https://docs.ethers.io/v5/). In
 fact, `ethers` is a peer dependency of our library and most of the objects exported by `zksync-web3` (
