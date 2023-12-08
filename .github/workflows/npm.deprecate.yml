@@ -1,0 +1,28 @@
+name: Deprecate NPM package
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "NPM package name which should be deprecated. For specifying version format <package-name>@<version> as input"
+        required: true
+      message:
+        description: "NPM package deprecation message"
+        required: true
+
+jobs:
+  zksync:
+    name: Deprecate package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: 'https://registry.npmjs.org'
+      - name: Deprecate package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm deprecate  ${{ inputs.package }} "${{ inputs.message}}"
