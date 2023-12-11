@@ -549,9 +549,9 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         return [parseInt(range[0], 16), parseInt(range[1], 16)];
     }
 
-    async getMainContractAddress(): Promise<Address> {
+    async getBridgehubContractAddress(): Promise<Address> {
         if (!this.contractAddresses.mainContract) {
-            this.contractAddresses.mainContract = await this.send("zks_getMainContract", []);
+            this.contractAddresses.mainContract = await this.send("zks_getBridgehubContract", []);
         }
         return this.contractAddresses.mainContract;
     }
@@ -807,7 +807,7 @@ export class Provider extends ethers.providers.JsonRpcProvider {
         l1TxResponse: ethers.providers.TransactionResponse,
     ): Promise<TransactionResponse> {
         const receipt = await l1TxResponse.wait();
-        const l2Hash = getL2HashFromPriorityOp(receipt, await this.getMainContractAddress());
+        const l2Hash = getL2HashFromPriorityOp(receipt, await this.getBridgehubContractAddress());
 
         let status = null;
         do {
