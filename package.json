@@ -46,7 +46,7 @@
     },
     "scripts": {
         "test": "mocha -r ts-node/register --bail tests/setup.test.ts tests/unit/*.test.ts tests/integration/*.test.ts",
-        "test:coverage": "nyc --reporter=lcov --report-dir=coverage mocha -r ts-node/register --bail tests/unit/*.test.ts ",
+        "test:coverage": "nyc  mocha -r ts-node/register --bail tests/unit/*.test.ts ",
         "build": "yarn types && tsc --strict true && ncp ./abi ./build/abi",
         "lint": "prettier . --write",
         "lint:check": "prettier . --check",

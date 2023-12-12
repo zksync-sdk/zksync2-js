@@ -39,6 +39,14 @@ describe("utils", () => {
                 "0x702942B8205E5dEdCD3374E5f4419843adA76Eeb".toLowerCase(),
             );
         });
+        it("should handle a case where L1_TO_L2_ALIAS_OFFSET is greater than the address", () => {
+            const l2ContractAddress = "0x100";
+            const l1ContractAddress = utils.undoL1ToL2Alias(l2ContractAddress);
+
+            expect(l1ContractAddress.toLowerCase()).to.be.equal(
+                "0xeeeeffffffffffffffffffffffffffffffffefef".toLowerCase(),
+            );
+        });
     });
 
     describe("#hashBytecode()", () => {
